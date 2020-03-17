@@ -8,5 +8,7 @@ object Main extends App {
 
   println(core)
   println(core.version)
+  println(core.created)
+  println(core.updated)
 
 }

@@ -1,6 +1,6 @@
 package io.github.ssledz
 
-import java.time.LocalDateTime
+import java.time.{Instant, ZoneId, ZonedDateTime}
 
 sealed trait Decoder[T] {
   def decode(offset: Int, arr: Array[Byte]): T
@@ -13,8 +13,9 @@ object Decoder {
     def decode(offset: Int, arr: Array[Byte]): Int = arr.int(offset, 6)
   }
 
-  implicit val dateTimeDecoder: Decoder[LocalDateTime] = new Decoder[LocalDateTime] {
-    def decode(offset: Int, arr: Array[Byte]): LocalDateTime = ???
+  implicit val dateTimeDecoder: Decoder[ZonedDateTime] = new Decoder[ZonedDateTime] {
+    def decode(offset: Int, arr: Array[Byte]): ZonedDateTime =
+      ZonedDateTime.ofInstant(Instant.ofEpochSecond(arr.long(offset, 36) / 10), ZoneId.systemDefault())
   }
 
   private implicit class BitSet(val array: Array[Byte]) extends AnyVal {

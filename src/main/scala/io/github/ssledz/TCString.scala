@@ -1,5 +1,6 @@
 package io.github.ssledz
 
+import java.time.ZonedDateTime
 import java.util.Base64
 
 import enumeratum.values.{IntEnum, IntEnumEntry}
@@ -17,6 +18,8 @@ object TCString {
     private lazy val arr = Base64.getDecoder.decode(value)
 
     lazy val version: Int = Decoder[Int].decode(0, arr)
+    lazy val created: ZonedDateTime = Decoder[ZonedDateTime].decode(6, arr)
+    lazy val updated: ZonedDateTime = Decoder[ZonedDateTime].decode(42, arr)
 
   }
 
