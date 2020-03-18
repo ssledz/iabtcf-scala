@@ -9,14 +9,34 @@ sealed trait Decoder[T] {
 object Decoder {
   def apply[T: Decoder]: Decoder[T] = implicitly[Decoder[T]]
 
-  implicit val intDecoder: Decoder[Int] = new Decoder[Int] {
-    def decode(offset: Int, arr: Array[Byte]): Int = arr.int(offset, 6)
+  implicit val boolDecoder: Decoder[Boolean] = new Decoder[Boolean] {
+    def decode(offset: Int, arr: Array[Byte]): Boolean = arr.bit(offset)
+  }
+
+  implicit val int6Decoder: Decoder[Int6] = new Decoder[Int6] {
+    def decode(offset: Int, arr: Array[Byte]): Int6 = Int6(arr.int(offset, 6))
+  }
+
+  implicit val int12Decoder: Decoder[Int12] = new Decoder[Int12] {
+    def decode(offset: Int, arr: Array[Byte]): Int12 = Int12(arr.int(offset, 12))
+  }
+
+  implicit val char6Decoder: Decoder[Char6] = new Decoder[Char6] {
+    def decode(offset: Int, arr: Array[Byte]): Char6 = Char6(('a' + arr.int(offset, 6)).toChar)
   }
 
   implicit val dateTimeDecoder: Decoder[ZonedDateTime] = new Decoder[ZonedDateTime] {
     def decode(offset: Int, arr: Array[Byte]): ZonedDateTime =
       ZonedDateTime.ofInstant(Instant.ofEpochSecond(arr.long(offset, 36) / 10), ZoneId.systemDefault())
   }
+
+  case class Int6(value: Int) extends AnyVal
+
+  case class Char6(value: Char) extends AnyVal
+
+  case class Int12(value: Int) extends AnyVal
+
+  case class Long36(value: Long) extends AnyVal
 
   private implicit class BitSet(val array: Array[Byte]) extends AnyVal {
 
