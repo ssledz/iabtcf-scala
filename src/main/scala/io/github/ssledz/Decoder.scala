@@ -30,6 +30,23 @@ object Decoder {
       ZonedDateTime.ofInstant(Instant.ofEpochSecond(arr.long(offset, 36) / 10), ZoneId.systemDefault())
   }
 
+  private val str2Decoder: Decoder[String] = new Decoder[String] {
+    def decode(offset: Int, arr: Array[Byte]): String =
+      List(0, 6).map(i => Decoder[Char6].decode(offset + i, arr).value.toString).foldLeft("")(_ + _)
+  }
+
+  implicit val langDecoder: Decoder[Lang] = new Decoder[Lang] {
+    def decode(offset: Int, arr: Array[Byte]): Lang = Lang(str2Decoder.decode(offset, arr).toUpperCase)
+  }
+
+  implicit val countryDecoder: Decoder[Country] = new Decoder[Country] {
+    def decode(offset: Int, arr: Array[Byte]): Country = Country(str2Decoder.decode(offset, arr).toUpperCase)
+  }
+
+  case class Lang(value: String) extends AnyVal
+
+  case class Country(value: String) extends AnyVal
+
   case class Int6(value: Int) extends AnyVal
 
   case class Char6(value: Char) extends AnyVal
