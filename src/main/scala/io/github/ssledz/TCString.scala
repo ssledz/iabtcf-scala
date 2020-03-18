@@ -4,8 +4,9 @@ import java.time.ZonedDateTime
 import java.util.Base64
 
 import enumeratum.values.{IntEnum, IntEnumEntry}
-import io.github.ssledz.Decoder.{Country, Int12, Int6, Lang}
+import io.github.ssledz.Decoder.{Country, Int12, Int6, IntSet, IntSetDecoder, Lang}
 import io.github.ssledz.fp.Show
+import io.github.ssledz.fp.Show._
 
 object TCString {
 
@@ -15,9 +16,20 @@ object TCString {
 
   sealed trait TCSegment
 
+  class VendorConsents(private val underlying: IntSet) extends AnyVal {
+    def hasConsent(vendorId: Int): Boolean = underlying.contains(vendorId)
+  }
+
+  object VendorConsents {
+
+    import IntSet._
+
+    implicit val vendorConsentsShowInstance: Show[VendorConsents] = _.underlying.show
+  }
+
   case class CoreSegment(value: String) extends TCSegment {
 
-    private lazy val arr = Base64.getDecoder.decode(value)
+    private lazy val arr = Base64.getUrlDecoder.decode(value)
 
     lazy val version: Int = Decoder[Int6].decode(0, arr).value
     lazy val created: ZonedDateTime = Decoder[ZonedDateTime].decode(6, arr)
@@ -35,6 +47,10 @@ object TCString {
     lazy val purposesLITransparency: IndexedSeq[Boolean] = (0 until 24).toVector.map(i => Decoder[Boolean].decode(176 + i, arr))
     lazy val purposeOneTreatment: Boolean = Decoder[Boolean].decode(200, arr)
     lazy val publisherCC: Country = Decoder[Country].decode(201, arr)
+
+    private val vendorConsentsDecoder = Decoder[IntSetDecoder].decode(213, arr)
+
+    lazy val vendorConsents: VendorConsents = new VendorConsents(vendorConsentsDecoder.decode)
   }
 
   object CoreSegment {
@@ -56,7 +72,8 @@ object TCString {
          |purposesConsent        : ${a.purposesConsent}
          |purposesLITransparency : ${a.purposesLITransparency}
          |purposeOneTreatment    : ${a.purposeOneTreatment}
-         |publisherCC            : ${a.publisherCC}
+         |publisherCountryCode   : ${a.publisherCC}
+         |vendorConsents         : ${a.vendorConsents.show}
          |""".stripMargin
 
   }
