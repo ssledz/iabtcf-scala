@@ -3,11 +3,15 @@ package io.github.ssledz
 import java.time.ZonedDateTime
 import java.util.Base64
 
+import enumeratum.EnumEntry.Camelcase
 import enumeratum.values.{IntEnum, IntEnumEntry}
-import io.github.ssledz.Decoder.{Country, Int12, Int6, IntSet, IntSetDecoder, Lang}
+import io.github.ssledz.Decoder.{Country, DecodedResult, Int12, Int2, Int6, IntRange, IntSet, IntSetDecoder, Lang}
+import io.github.ssledz.TCString.CoreSegment.PublisherRestrictions.PurposeRestriction
 import io.github.ssledz.TCString.CoreSegment._
 import io.github.ssledz.fp.Show
 import io.github.ssledz.fp.Show._
+
+import scala.annotation.tailrec
 
 object TCString {
 
@@ -45,6 +49,10 @@ object TCString {
     private lazy val vendorLegitimateInterestDecoder = Decoder[IntSetDecoder].decode(213 + vendorConsentsDecoder.size, arr)
 
     lazy val vendorLegitimateInterest: VendorLegitimateInterest = new VendorLegitimateInterest(vendorLegitimateInterestDecoder.decode)
+
+    lazy val publisherRestrictions: Option[PublisherRestrictions] =
+      Decoder[Option[PublisherRestrictions]].decode(213 + vendorConsentsDecoder.size + vendorLegitimateInterestDecoder.size, arr)
+
   }
 
   object CoreSegment {
@@ -69,7 +77,92 @@ object TCString {
          |publisherCountryCode     : ${a.publisherCC}
          |vendorConsents           : ${a.vendorConsents.show}
          |vendorLegitimateInterest : ${a.vendorLegitimateInterest.show}
+         |publisherRestrictions    : ${a.publisherRestrictions.show}
          |""".stripMargin
+
+    case class PublisherRestrictions(private val xs: List[(PurposeRestriction, IntRange)]) {
+
+      lazy val allVendors: Set[Int] = xs.flatMap { case (_, vs) => vs.toSeq }.toSet
+
+      lazy val allRestrictions: Set[PurposeRestriction] = xs.map(_._1).toSet
+
+      def restrictions(vendorId: Int): Set[PurposeRestriction] = xs.foldLeft(Set.empty[PurposeRestriction]) { case (acc, (pr, range)) =>
+        if (range.contains(vendorId)) {
+          acc + pr
+        } else {
+          acc
+        }
+      }
+
+      def vendors(restriction: PurposeRestriction): Set[Int] = xs.foldLeft(Set.empty[Int]) { case (acc, (pr, range)) =>
+        if (restriction == pr) {
+          acc ++ range.toSeq
+        } else {
+          acc
+        }
+      }
+
+    }
+
+    object PublisherRestrictions {
+
+      implicit val publisherRestrictionsDecoder: Decoder[Option[PublisherRestrictions]] = new Decoder[Option[PublisherRestrictions]] {
+
+        def decode(offset: Int, arr: Array[Byte]): Option[PublisherRestrictions] = {
+
+          val numOfRestrictions = Decoder[Int12].decode(offset, arr).value
+
+          if (numOfRestrictions == 0) {
+            None
+          } else {
+            @tailrec
+            def go(offset: Int, cnt: Int, acc: List[(PurposeRestriction, IntRange)] = List.empty): List[(PurposeRestriction, IntRange)] = {
+              if (cnt == 0) {
+                acc
+              } else {
+                val purposeId = Decoder[Int6].decode(offset, arr).value
+                val DecodedResult(rtSize, restrictionType) = Decoder[DecodedResult[RestrictionType]].decode(offset + 6, arr)
+                val DecodedResult(vendorSize, vendorRange) = Decoder[DecodedResult[IntRange]].decode(offset + 6 + rtSize, arr)
+                val restriction = PurposeRestriction(purposeId, restrictionType) -> vendorRange
+                go(offset + 6 + rtSize + vendorSize, cnt - 1, restriction :: acc)
+              }
+            }
+
+            val restrictions = go(offset + 12, numOfRestrictions)
+            Some(PublisherRestrictions(restrictions))
+          }
+        }
+      }
+
+      implicit val publisherRestrictionsShowInstance: Show[PublisherRestrictions] = (prs: PublisherRestrictions) =>
+        prs.allVendors.map(id => s"$id -> ${prs.restrictions(id).map(_.show)}").toString
+
+      case class PurposeRestriction(purposeId: Int, restrictionType: RestrictionType)
+
+      object PurposeRestriction {
+        implicit val purposeRestrictionShowInstance: Show[PurposeRestriction] = pr => s"${pr.purposeId}::${pr.restrictionType.entryName}"
+      }
+
+      sealed abstract class RestrictionType private(val value: Int) extends IntEnumEntry with Camelcase
+
+      object RestrictionType extends IntEnum[RestrictionType] {
+
+        implicit val restrictionTypeDecoder: Decoder[DecodedResult[RestrictionType]] = new Decoder[DecodedResult[RestrictionType]] {
+          def decode(offset: Int, arr: Array[Byte]): DecodedResult[RestrictionType] =
+            DecodedResult(2, RestrictionType.withValue(Decoder[Int2].decode(offset, arr).value))
+        }
+
+        val values: IndexedSeq[RestrictionType] = findValues
+
+        case object NotAllowed extends RestrictionType(0)
+
+        case object RequireConsent extends RestrictionType(1)
+
+        case object RequireLegitimateInterest extends RestrictionType(2)
+
+      }
+
+    }
 
     case class VendorLegitimateInterest(private val underlying: IntSet) extends AnyVal {
       def established(vendorId: Int): Boolean = underlying.contains(vendorId)
