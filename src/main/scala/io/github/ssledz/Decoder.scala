@@ -1,73 +1,94 @@
 package io.github.ssledz
 
 import java.time.{Instant, ZoneId, ZonedDateTime}
-import java.util.concurrent.atomic.AtomicReference
 
-import io.github.ssledz.Decoder.MemoizedDecoder
+import io.github.ssledz.Decoder.DecodedResult
 import io.github.ssledz.fp.Show
 
 import scala.annotation.tailrec
 
-trait Decoder[T] {
-  def decode(offset: Int, arr: Array[Byte]): T
+trait Decoder[A] {
 
-  def memo: Decoder[T] = MemoizedDecoder(this)
+  self =>
+
+  def decode(offset: Int, arr: Array[Byte]): DecodedResult[A]
+
+  def flatMap[B](f: A => Decoder[B]): Decoder[B] = new Decoder[B] {
+    def decode(offset: Int, arr: Array[Byte]): DecodedResult[B] = {
+      val DecodedResult(size, newOffset, a) = self.decode(offset, arr)
+      val res = f(a).decode(newOffset, arr)
+      res.copy(size = res.size + size)
+    }
+  }
+
+  def map[B](f: A => B): Decoder[B] = new Decoder[B] {
+    def decode(offset: Int, arr: Array[Byte]): DecodedResult[B] = {
+      val res = self.decode(offset, arr)
+      res.copy(value = f(res.value))
+    }
+  }
+
 }
 
 object Decoder {
-  def apply[T: Decoder]: Decoder[T] = implicitly[Decoder[T]]
+  def apply[A: Decoder]: Decoder[A] = implicitly[Decoder[A]]
 
-  def const[T](value: T): Decoder[T] = new Decoder[T] {
-    override def decode(offset: Int, arr: Array[Byte]): T = value
-  }
-
-  private case class MemoizedDecoder[T](underlying: Decoder[T], ref: AtomicReference[T] = new AtomicReference[T]) extends Decoder[T] {
-    def decode(offset: Int, arr: Array[Byte]): T = ref.updateAndGet((t: T) => if (t == null) decode(offset, arr) else t)
+  def pure[A](value: A): Decoder[A] = new Decoder[A] {
+    def decode(offset: Int, arr: Array[Byte]): DecodedResult[A] = DecodedResult(0, offset, value)
   }
 
   implicit val boolDecoder: Decoder[Boolean] = new Decoder[Boolean] {
-    def decode(offset: Int, arr: Array[Byte]): Boolean = arr.bit(offset)
+    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Boolean] = DecodedResult(1, offset + 1, arr.bit(offset))
   }
 
   implicit val int6Decoder: Decoder[Int6] = new Decoder[Int6] {
-    def decode(offset: Int, arr: Array[Byte]): Int6 = Int6(arr.int(offset, 6))
+    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Int6] = DecodedResult(6, offset + 6, Int6(arr.int(offset, 6)))
   }
 
   implicit val int2Decoder: Decoder[Int2] = new Decoder[Int2] {
-    def decode(offset: Int, arr: Array[Byte]): Int2 = Int2(arr.int(offset, 2))
+    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Int2] = DecodedResult(2, offset + 2, Int2(arr.int(offset, 2)))
   }
 
   implicit val int12Decoder: Decoder[Int12] = new Decoder[Int12] {
-    def decode(offset: Int, arr: Array[Byte]): Int12 = Int12(arr.int(offset, 12))
+    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Int12] = DecodedResult(12, offset + 12, Int12(arr.int(offset, 12)))
   }
 
   implicit val int16Decoder: Decoder[Int16] = new Decoder[Int16] {
-    def decode(offset: Int, arr: Array[Byte]): Int16 = Int16(arr.int(offset, 16))
+    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Int16] = DecodedResult(16, offset + 16, Int16(arr.int(offset, 16)))
   }
 
   implicit val char6Decoder: Decoder[Char6] = new Decoder[Char6] {
-    def decode(offset: Int, arr: Array[Byte]): Char6 = Char6(('a' + arr.int(offset, 6)).toChar)
+    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Char6] = DecodedResult(6, offset + 6, Char6(('a' + arr.int(offset, 6)).toChar))
   }
 
   implicit val dateTimeDecoder: Decoder[ZonedDateTime] = new Decoder[ZonedDateTime] {
-    def decode(offset: Int, arr: Array[Byte]): ZonedDateTime =
-      ZonedDateTime.ofInstant(Instant.ofEpochSecond(arr.long(offset, 36) / 10), ZoneId.systemDefault())
+    def decode(offset: Int, arr: Array[Byte]): DecodedResult[ZonedDateTime] =
+      DecodedResult(36, offset + 36, ZonedDateTime.ofInstant(Instant.ofEpochSecond(arr.long(offset, 36) / 10), ZoneId.systemDefault()))
   }
 
-  private val str2Decoder: Decoder[String] = new Decoder[String] {
-    def decode(offset: Int, arr: Array[Byte]): String =
-      List(0, 6).map(i => Decoder[Char6].decode(offset + i, arr).value.toString).foldLeft("")(_ + _)
-  }
+  private val str2Decoder: Decoder[String] = for {
+    a <- Decoder[Char6]
+    b <- Decoder[Char6]
+  } yield a.value.toString + b.value.toString
 
-  implicit val langDecoder: Decoder[Lang] = new Decoder[Lang] {
-    def decode(offset: Int, arr: Array[Byte]): Lang = Lang(str2Decoder.decode(offset, arr).toUpperCase)
-  }
+//  private val str2Decoder: Decoder[String] = new Decoder[String] {
+//    def decode(offset: Int, arr: Array[Byte]): String =
+//      List(0, 6).map(i => Decoder[Char6].decode(offset + i, arr).value.toString).foldLeft("")(_ + _)
+//  }
 
-  implicit val countryDecoder: Decoder[Country] = new Decoder[Country] {
-    def decode(offset: Int, arr: Array[Byte]): Country = Country(str2Decoder.decode(offset, arr).toUpperCase)
-  }
+  implicit val langDecoder: Decoder[Lang] = str2Decoder.map(str => Lang(str.toUpperCase))
 
-  implicit val intRangeDecoder: Decoder[DecodedResult[IntRange]] = new Decoder[DecodedResult[IntRange]] {
+//  implicit val langDecoder: Decoder[Lang] = new Decoder[Lang] {
+//    def decode(offset: Int, arr: Array[Byte]): Lang = Lang(str2Decoder.decode(offset, arr).toUpperCase)
+//  }
+
+  implicit val countryDecoder: Decoder[Country] = str2Decoder.map(str => Country(str.toUpperCase))
+
+//  implicit val countryDecoder: Decoder[Country] = new Decoder[Country] {
+//    def decode(offset: Int, arr: Array[Byte]): Country = Country(str2Decoder.decode(offset, arr).toUpperCase)
+//  }
+
+  implicit val intRangeDecoder: Decoder[IntRange] = new Decoder[IntRange] {
 
     def decode(offset: Int, arr: Array[Byte]): DecodedResult[IntRange] = {
 
@@ -107,7 +128,7 @@ object Decoder {
 
         val DecodedResult(size, intRange) = intRangeDecoder.decode(offset + 17, arr)
 
-        val decoder: Decoder[IntSet] = Decoder.const(IntSetImpl(maxId, intRange))
+        val decoder: Decoder[IntSet] = Decoder.pure(IntSetImpl(maxId, intRange))
 
         IntSetDecoder(offset, size + 17, arr, decoder)
       } else {
@@ -119,7 +140,7 @@ object Decoder {
   /**
    * @size - how much bits were consumed to decode the value
    */
-  case class DecodedResult[T](size: Int, value: T)
+  case class DecodedResult[A](size: Int, offset: Int, value: A)
 
   case class IntSetDecoder(offset: Int, size: Int, arr: Array[Byte], underlying: Decoder[IntSet]) {
     def decode: IntSet = underlying.decode(offset, arr)
