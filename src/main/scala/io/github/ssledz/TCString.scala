@@ -5,6 +5,7 @@ import java.util.Base64
 
 import enumeratum.values.{IntEnum, IntEnumEntry}
 import io.github.ssledz.Decoder.{Country, Int12, Int6, IntSet, IntSetDecoder, Lang}
+import io.github.ssledz.TCString.CoreSegment._
 import io.github.ssledz.fp.Show
 import io.github.ssledz.fp.Show._
 
@@ -15,17 +16,6 @@ object TCString {
   }
 
   sealed trait TCSegment
-
-  class VendorConsents(private val underlying: IntSet) extends AnyVal {
-    def hasConsent(vendorId: Int): Boolean = underlying.contains(vendorId)
-  }
-
-  object VendorConsents {
-
-    import IntSet._
-
-    implicit val vendorConsentsShowInstance: Show[VendorConsents] = _.underlying.show
-  }
 
   case class CoreSegment(value: String) extends TCSegment {
 
@@ -48,33 +38,56 @@ object TCString {
     lazy val purposeOneTreatment: Boolean = Decoder[Boolean].decode(200, arr)
     lazy val publisherCC: Country = Decoder[Country].decode(201, arr)
 
-    private val vendorConsentsDecoder = Decoder[IntSetDecoder].decode(213, arr)
+    private lazy val vendorConsentsDecoder = Decoder[IntSetDecoder].decode(213, arr)
 
     lazy val vendorConsents: VendorConsents = new VendorConsents(vendorConsentsDecoder.decode)
+
+    private lazy val vendorLegitimateInterestDecoder = Decoder[IntSetDecoder].decode(213 + vendorConsentsDecoder.size, arr)
+
+    lazy val vendorLegitimateInterest: VendorLegitimateInterest = new VendorLegitimateInterest(vendorLegitimateInterestDecoder.decode)
   }
 
   object CoreSegment {
 
     implicit val coreShowInstance: Show[CoreSegment] = (a: CoreSegment) =>
       s"""
-         |version                : ${a.version}
-         |created                : ${a.created}
-         |updated                : ${a.updated}
-         |cmpId                  : ${a.cmpId}
-         |cmpVersion             : ${a.cmpVersion}
-         |consentScreen          : ${a.consentScreen}
-         |consentLanguage        : ${a.consentLanguage}
-         |vendorListVersion      : ${a.vendorListVersion}
-         |tcfPolicyVersion       : ${a.tcfPolicyVersion}
-         |isServiceSpecific      : ${a.isServiceSpecific}
-         |useNonStandardStacks   : ${a.useNonStandardStacks}
-         |specialFeatureOptIns   : ${a.specialFeatureOptIns}
-         |purposesConsent        : ${a.purposesConsent}
-         |purposesLITransparency : ${a.purposesLITransparency}
-         |purposeOneTreatment    : ${a.purposeOneTreatment}
-         |publisherCountryCode   : ${a.publisherCC}
-         |vendorConsents         : ${a.vendorConsents.show}
+         |version                  : ${a.version}
+         |created                  : ${a.created}
+         |updated                  : ${a.updated}
+         |cmpId                    : ${a.cmpId}
+         |cmpVersion               : ${a.cmpVersion}
+         |consentScreen            : ${a.consentScreen}
+         |consentLanguage          : ${a.consentLanguage}
+         |vendorListVersion        : ${a.vendorListVersion}
+         |tcfPolicyVersion         : ${a.tcfPolicyVersion}
+         |isServiceSpecific        : ${a.isServiceSpecific}
+         |useNonStandardStacks     : ${a.useNonStandardStacks}
+         |specialFeatureOptIns     : ${a.specialFeatureOptIns}
+         |purposesConsent          : ${a.purposesConsent}
+         |purposesLITransparency   : ${a.purposesLITransparency}
+         |purposeOneTreatment      : ${a.purposeOneTreatment}
+         |publisherCountryCode     : ${a.publisherCC}
+         |vendorConsents           : ${a.vendorConsents.show}
+         |vendorLegitimateInterest : ${a.vendorLegitimateInterest.show}
          |""".stripMargin
+
+    case class VendorLegitimateInterest(private val underlying: IntSet) extends AnyVal {
+      def established(vendorId: Int): Boolean = underlying.contains(vendorId)
+    }
+
+    import IntSet._
+
+    object VendorLegitimateInterest {
+      implicit val vendorLegitimateInterestShowInstance: Show[VendorLegitimateInterest] = _.underlying.show
+    }
+
+    class VendorConsents(private val underlying: IntSet) extends AnyVal {
+      def hasConsent(vendorId: Int): Boolean = underlying.contains(vendorId)
+    }
+
+    object VendorConsents {
+      implicit val vendorConsentsShowInstance: Show[VendorConsents] = _.underlying.show
+    }
 
   }
 
