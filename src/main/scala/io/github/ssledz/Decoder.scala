@@ -59,40 +59,37 @@ object Decoder {
     def decode(offset: Int, arr: Array[Byte]): Country = Country(str2Decoder.decode(offset, arr).toUpperCase)
   }
 
+  private val intRangeDecoder : Decoder[(Int, IntRange)] = new Decoder[(Int, IntRange)] {
+    def decode(offset: Int, arr: Array[Byte]): (Int, IntRange) = {
+      val numEntries = Decoder[Int12].decode(offset, arr).value
+
+      //        println("numEntries: " + numEntries)
+
+      @tailrec
+      def go(offset: Int, numEntries: Int, size: Int, ranges: List[Range] = List.empty, elems: Set[Int] = Set.empty): (Int, IntRange) =
+        if (numEntries == 0) {
+          size -> IntRangeImpl(elems, ranges)
+        } else {
+          val isRange = Decoder[Boolean].decode(offset, arr)
+          val startIdx = Decoder[Int16].decode(offset + 1, arr).value
+          //            println("isRange: " + isRange)
+          //            println("startIdx: " + startIdx)
+          if (isRange) {
+            val endIdx = Decoder[Int16].decode(offset + 17, arr).value
+            go(offset + 33, numEntries - 1, size + 33, (startIdx to endIdx) :: ranges, elems)
+          } else {
+            go(offset + 17, numEntries - 1, size + 17, ranges, elems + startIdx)
+          }
+        }
+
+      go(offset + 12, numEntries, 12)
+    }
+  }
+
   implicit val intSetDecoderDecoder: Decoder[IntSetDecoder] = new Decoder[IntSetDecoder] {
 
-    def rangeDec(maxId: Int): Decoder[(Int, IntSet)] = new Decoder[(Int, IntSet)] {
-
-      def decode(offset: Int, arr: Array[Byte]): (Int, IntSet) = {
-
-        val numEntries = Decoder[Int12].decode(offset, arr).value
-
-//        println("numEntries: " + numEntries)
-
-        @tailrec
-        def go(offset: Int, numEntries: Int, size: Int, ranges: List[Range] = List.empty, elems: Set[Int] = Set.empty): (Int, IntSet) =
-          if (numEntries == 0) {
-            size -> IntSetImpl(maxId, elems, ranges)
-          } else {
-            val isRange = Decoder[Boolean].decode(offset, arr)
-            val startIdx = Decoder[Int16].decode(offset + 1, arr).value
-//            println("isRange: " + isRange)
-//            println("startIdx: " + startIdx)
-            if (isRange) {
-              val endIdx = Decoder[Int16].decode(offset + 17, arr).value
-              go(offset + 33, numEntries - 1, size + 33, (startIdx to endIdx) :: ranges , elems)
-            } else {
-              go(offset + 17, numEntries - 1, size + 17, ranges, elems + startIdx)
-            }
-          }
-
-        go(offset + 12, Decoder[Int12].decode(offset, arr).value, 12)
-
-      }
-    }
-
     def bitFieldDec(size: Int): Decoder[IntSet] = new Decoder[IntSet] {
-      def decode(offset: Int, arr: Array[Byte]): IntSet = IntSetImpl(0)
+      def decode(offset: Int, arr: Array[Byte]): IntSet = ???
     }
 
     def decode(offset: Int, arr: Array[Byte]): IntSetDecoder = {
@@ -100,15 +97,15 @@ object Decoder {
       val maxId = Decoder[Int16].decode(offset, arr).value
       val isRange = Decoder[Boolean].decode(offset + 16, arr)
 
-//      println("maxId: " + maxId)
-//      println("isRange: " + isRange)
+      //      println("maxId: " + maxId)
+      //      println("isRange: " + isRange)
 
       if (isRange) {
 
-        val (size, intSet) = rangeDec(maxId).decode(offset + 17, arr)
+        val (size, intRange) = intRangeDecoder.decode(offset + 17, arr)
 
         val decoder: Decoder[IntSet] = new Decoder[IntSet] {
-          def decode(offset: Int, arr: Array[Byte]): IntSet = intSet
+          def decode(offset: Int, arr: Array[Byte]): IntSet = IntSetImpl(maxId, intRange)
         }
         IntSetDecoder(offset, size + 17, arr, decoder)
       } else {
@@ -127,12 +124,28 @@ object Decoder {
 
   object IntSet {
     implicit val intSetShowInstance: Show[IntSet] = {
-      case s@IntSetImpl(max, _, _) => (1 to max).filter(s.contains).map(i => s"$i -> true").toString
+      case s@IntSetImpl(max, _) => (1 to max).filter(s.contains).map(i => s"$i -> true").toString
       case _ => "???"
     }
   }
 
-  private case class IntSetImpl(max: Int, elems: Set[Int] = Set.empty, ranges: List[Range] = List.empty) extends IntSet {
+  private case class IntSetImpl(max: Int, range: IntRange) extends IntSet {
+    def contains(key: Int): Boolean = range.contains(key)
+  }
+
+  sealed trait IntRange {
+    def contains(key: Int): Boolean
+  }
+
+  object IntRange {
+    val empty : IntRange = IntRangeImpl()
+    implicit val intRangeShowInstance: Show[IntRange] = {
+      case IntRangeImpl(elems, ranges) => (ranges.toSet.flatMap((r : Range) => r.toSet) ++ elems).toList.sorted.toString
+      case _ => "???"
+    }
+  }
+
+  private case class IntRangeImpl(elems: Set[Int] = Set.empty, ranges: List[Range] = List.empty) extends IntRange {
     def contains(key: Int): Boolean = elems.contains(key) || ranges.exists(_.contains(key))
   }
 

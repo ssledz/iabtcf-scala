@@ -12,5 +12,6 @@ object Main extends App {
   println(core.show)
   println(core.vendorConsents.hasConsent(242))
   println(core.vendorConsents.hasConsent(243))
+  println(core.vendorLegitimateInterest.established(243))
 
 }
