@@ -10,8 +10,8 @@ object Main extends App {
   val core = TCString.parse(tcString).core
 
   println(core.show)
-  println(core.vendorConsents.hasConsent(242))
-  println(core.vendorConsents.hasConsent(243))
-  println(core.vendorLegitimateInterest.established(243))
+//  println(core.vendorConsents.hasConsent(242))
+//  println(core.vendorConsents.hasConsent(243))
+//  println(core.vendorLegitimateInterest.established(243))
 
 }
