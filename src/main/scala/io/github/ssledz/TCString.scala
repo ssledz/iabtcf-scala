@@ -5,7 +5,7 @@ import java.util.Base64
 
 import enumeratum.EnumEntry.Camelcase
 import enumeratum.values.{IntEnum, IntEnumEntry}
-import io.github.ssledz.Decoder.{Country, DecodedResult, Int12, Int2, Int6, IntRange, IntSet, IntSetDecoder, Lang}
+import io.github.ssledz.Decoder.{Country, DecodedResult, Int12, Int2, Int6, IntRange, IntSet, Lang}
 import io.github.ssledz.TCString.CoreSegment.PublisherRestrictions.PurposeRestriction
 import io.github.ssledz.TCString.CoreSegment._
 import io.github.ssledz.fp.Show
@@ -41,62 +41,44 @@ object TCString {
     lazy val purposesLITransparency: IndexedSeq[Boolean] = Decoder.sequenceDecoder[Boolean](24).decode(176, arr).value
     lazy val purposeOneTreatment: Boolean = Decoder[Boolean].decode(200, arr).value
     lazy val publisherCC: Country = Decoder[Country].decode(201, arr).value
-//
-//    private lazy val vendorConsentsDecoder = Decoder[IntSetDecoder].decode(213, arr)
-//
-//    lazy val vendorConsents: VendorConsents = new VendorConsents(vendorConsentsDecoder.decode)
-//
-//    private lazy val vendorLegitimateInterestDecoder = Decoder[IntSetDecoder].decode(213 + vendorConsentsDecoder.size, arr)
-//
-//    lazy val vendorLegitimateInterest: VendorLegitimateInterest = new VendorLegitimateInterest(vendorLegitimateInterestDecoder.decode)
-//
-//    lazy val publisherRestrictions: Option[PublisherRestrictions] =
-//      Decoder[Option[PublisherRestrictions]].decode(213 + vendorConsentsDecoder.size + vendorLegitimateInterestDecoder.size, arr)
+
+    private lazy val vendorConsentsDecodedResult = Decoder[IntSet].decode(213, arr)
+
+    lazy val vendorConsents: VendorConsents = new VendorConsents(vendorConsentsDecodedResult.value)
+
+    private lazy val vendorLegitimateInterestDecodedResult = Decoder[IntSet].decode(vendorConsentsDecodedResult.offset, arr)
+
+    lazy val vendorLegitimateInterest: VendorLegitimateInterest = new VendorLegitimateInterest(vendorLegitimateInterestDecodedResult.value)
+
+    lazy val publisherRestrictions: Option[PublisherRestrictions] =
+      Decoder[Option[PublisherRestrictions]].decode(vendorLegitimateInterestDecodedResult.offset, arr).value
 
   }
 
   object CoreSegment {
 
     implicit val coreShowInstance: Show[CoreSegment] = (a: CoreSegment) =>
-          s"""
-             |version                  : ${a.version}
-             |created                  : ${a.created}
-             |updated                  : ${a.updated}
-             |cmpId                    : ${a.cmpId}
-             |cmpVersion               : ${a.cmpVersion}
-             |consentScreen            : ${a.consentScreen}
-             |consentLanguage          : ${a.consentLanguage}
-             |vendorListVersion        : ${a.vendorListVersion}
-             |tcfPolicyVersion         : ${a.tcfPolicyVersion}
-             |isServiceSpecific        : ${a.isServiceSpecific}
-             |useNonStandardStacks     : ${a.useNonStandardStacks}
-             |specialFeatureOptIns     : ${a.specialFeatureOptIns}
-             |purposesConsent          : ${a.purposesConsent}
-             |purposesLITransparency   : ${a.purposesLITransparency}
-             |purposeOneTreatment      : ${a.purposeOneTreatment}
-             |publisherCountryCode     : ${a.publisherCC}
-             |""".stripMargin
-//      s"""
-//         |version                  : ${a.version}
-//         |created                  : ${a.created}
-//         |updated                  : ${a.updated}
-//         |cmpId                    : ${a.cmpId}
-//         |cmpVersion               : ${a.cmpVersion}
-//         |consentScreen            : ${a.consentScreen}
-//         |consentLanguage          : ${a.consentLanguage}
-//         |vendorListVersion        : ${a.vendorListVersion}
-//         |tcfPolicyVersion         : ${a.tcfPolicyVersion}
-//         |isServiceSpecific        : ${a.isServiceSpecific}
-//         |useNonStandardStacks     : ${a.useNonStandardStacks}
-//         |specialFeatureOptIns     : ${a.specialFeatureOptIns}
-//         |purposesConsent          : ${a.purposesConsent}
-//         |purposesLITransparency   : ${a.purposesLITransparency}
-//         |purposeOneTreatment      : ${a.purposeOneTreatment}
-//         |publisherCountryCode     : ${a.publisherCC}
-//         |vendorConsents           : ${a.vendorConsents.show}
-//         |vendorLegitimateInterest : ${a.vendorLegitimateInterest.show}
-//         |publisherRestrictions    : ${a.publisherRestrictions.show}
-//         |""".stripMargin
+      s"""
+         |version                  : ${a.version}
+         |created                  : ${a.created}
+         |updated                  : ${a.updated}
+         |cmpId                    : ${a.cmpId}
+         |cmpVersion               : ${a.cmpVersion}
+         |consentScreen            : ${a.consentScreen}
+         |consentLanguage          : ${a.consentLanguage}
+         |vendorListVersion        : ${a.vendorListVersion}
+         |tcfPolicyVersion         : ${a.tcfPolicyVersion}
+         |isServiceSpecific        : ${a.isServiceSpecific}
+         |useNonStandardStacks     : ${a.useNonStandardStacks}
+         |specialFeatureOptIns     : ${a.specialFeatureOptIns}
+         |purposesConsent          : ${a.purposesConsent}
+         |purposesLITransparency   : ${a.purposesLITransparency}
+         |purposeOneTreatment      : ${a.purposeOneTreatment}
+         |publisherCountryCode     : ${a.publisherCC}
+         |vendorConsents           : ${a.vendorConsents.show}
+         |vendorLegitimateInterest : ${a.vendorLegitimateInterest.show}
+         |publisherRestrictions    : ${a.publisherRestrictions.show}
+         |""".stripMargin
 
     case class PublisherRestrictions(private val xs: List[(PurposeRestriction, IntRange)]) {
 
@@ -124,33 +106,35 @@ object TCString {
 
     object PublisherRestrictions {
 
-//      implicit val publisherRestrictionsDecoder: Decoder[Option[PublisherRestrictions]] = new Decoder[Option[PublisherRestrictions]] {
-//
-//        def decode(offset: Int, arr: Array[Byte]): Option[PublisherRestrictions] = {
-//
-//          val numOfRestrictions = Decoder[Int12].decode(offset, arr).value
-//
-//          if (numOfRestrictions == 0) {
-//            None
-//          } else {
-//            @tailrec
-//            def go(offset: Int, cnt: Int, acc: List[(PurposeRestriction, IntRange)] = List.empty): List[(PurposeRestriction, IntRange)] = {
-//              if (cnt == 0) {
-//                acc
-//              } else {
-//                val purposeId = Decoder[Int6].decode(offset, arr).value
-//                val DecodedResult(rtSize, restrictionType) = Decoder[DecodedResult[RestrictionType]].decode(offset + 6, arr)
-//                val DecodedResult(vendorSize, vendorRange) = Decoder[DecodedResult[IntRange]].decode(offset + 6 + rtSize, arr)
-//                val restriction = PurposeRestriction(purposeId, restrictionType) -> vendorRange
-//                go(offset + 6 + rtSize + vendorSize, cnt - 1, restriction :: acc)
-//              }
-//            }
-//
-//            val restrictions = go(offset + 12, numOfRestrictions)
-//            Some(PublisherRestrictions(restrictions))
-//          }
-//        }
-//      }
+      implicit val publisherRestrictionsDecoder: Decoder[Option[PublisherRestrictions]] = new Decoder[Option[PublisherRestrictions]] {
+
+        implicit val vendorPurposeRestrictionDecoder: Decoder[(PurposeRestriction, IntRange)] = for {
+          restriction <- Decoder[PurposeRestriction]
+          vendorRange <- Decoder[IntRange]
+        } yield restriction -> vendorRange
+
+        def decode(offset: Int, arr: Array[Byte]): DecodedResult[Option[PublisherRestrictions]] = {
+
+          val DecodedResult(_, newOffset, numOfRestrictions) = Decoder[Int12].decode(offset, arr)
+
+          if (numOfRestrictions.value == 0) {
+            DecodedResult(0, newOffset, None)
+          } else {
+            @tailrec
+            def go(offset: Int, cnt: Int, acc: List[(PurposeRestriction, IntRange)] = List.empty): DecodedResult[List[(PurposeRestriction, IntRange)]] = {
+              if (cnt == 0) {
+                DecodedResult(0, offset, acc)
+              } else {
+                val DecodedResult(_, newOffset, restriction) = Decoder[(PurposeRestriction, IntRange)].decode(offset, arr)
+                go(newOffset, cnt - 1, restriction :: acc)
+              }
+            }
+
+            val DecodedResult(_, offset, restrictions) = go(newOffset, numOfRestrictions.value)
+            DecodedResult(0, offset, Some(PublisherRestrictions(restrictions)))
+          }
+        }
+      }
 
       implicit val publisherRestrictionsShowInstance: Show[PublisherRestrictions] = (prs: PublisherRestrictions) =>
         prs.allVendors.map(id => s"$id -> ${prs.restrictions(id).map(_.show)}").toString
@@ -158,6 +142,13 @@ object TCString {
       case class PurposeRestriction(purposeId: Int, restrictionType: RestrictionType)
 
       object PurposeRestriction {
+
+        implicit val purposeRestrictionDecoder: Decoder[PurposeRestriction] =
+          for {
+            purposeId <- Decoder[Int6]
+            restrictionType <- Decoder[RestrictionType]
+          } yield PurposeRestriction(purposeId.value, restrictionType)
+
         implicit val purposeRestrictionShowInstance: Show[PurposeRestriction] = pr => s"${pr.purposeId}::${pr.restrictionType.entryName}"
       }
 
@@ -165,10 +156,7 @@ object TCString {
 
       object RestrictionType extends IntEnum[RestrictionType] {
 
-//        implicit val restrictionTypeDecoder: Decoder[DecodedResult[RestrictionType]] = new Decoder[DecodedResult[RestrictionType]] {
-//          def decode(offset: Int, arr: Array[Byte]): DecodedResult[RestrictionType] =
-//            DecodedResult(2, RestrictionType.withValue(Decoder[Int2].decode(offset, arr).value))
-//        }
+        implicit val restrictionTypeDecoder: Decoder[RestrictionType] = Decoder[Int2].map(id => RestrictionType.withValue(id.value))
 
         val values: IndexedSeq[RestrictionType] = findValues
 

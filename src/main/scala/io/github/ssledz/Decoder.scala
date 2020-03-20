@@ -57,9 +57,9 @@ object Decoder {
     def go(xs: IndexedSeq[Decoder[A]], acc: Decoder[IndexedSeq[A]]): Decoder[IndexedSeq[A]] = xs.headOption match {
       case Some(ha) =>
         val newAcc = for {
-        a <- ha
-        as <- acc
-      } yield as :+ a
+          a <- ha
+          as <- acc
+        } yield as :+ a
         go(xs.tail, newAcc)
       case None => acc
     }
@@ -103,22 +103,9 @@ object Decoder {
     b <- Decoder[Char6]
   } yield a.value.toString + b.value.toString
 
-  //  private val str2Decoder: Decoder[String] = new Decoder[String] {
-  //    def decode(offset: Int, arr: Array[Byte]): String =
-  //      List(0, 6).map(i => Decoder[Char6].decode(offset + i, arr).value.toString).foldLeft("")(_ + _)
-  //  }
-
   implicit val langDecoder: Decoder[Lang] = str2Decoder.map(str => Lang(str.toUpperCase))
 
-  //  implicit val langDecoder: Decoder[Lang] = new Decoder[Lang] {
-  //    def decode(offset: Int, arr: Array[Byte]): Lang = Lang(str2Decoder.decode(offset, arr).toUpperCase)
-  //  }
-
   implicit val countryDecoder: Decoder[Country] = str2Decoder.map(str => Country(str.toUpperCase))
-
-  //  implicit val countryDecoder: Decoder[Country] = new Decoder[Country] {
-  //    def decode(offset: Int, arr: Array[Byte]): Country = Country(str2Decoder.decode(offset, arr).toUpperCase)
-  //  }
 
   implicit val intRangeDecoder: Decoder[IntRange] = new Decoder[IntRange] {
 
@@ -149,40 +136,46 @@ object Decoder {
     }
   }
 
-  implicit val intSetDecoderDecoder: Decoder[IntSetDecoder] = new Decoder[IntSetDecoder] {
+  private def bitFieldDecoder(size: Int): Decoder[IntRange] = ??? //  Decoder.sequenceDecoder[Boolean](size)
 
-    def bitFieldDec(size: Int): Decoder[IntSet] = new Decoder[IntSet] {
-      def decode(offset: Int, arr: Array[Byte]): DecodedResult[IntSet] = ???
-    }
+  implicit val intSetDecoder: Decoder[IntSet] = for {
+    maxId <- Decoder[Int16]
+    isRange <- Decoder[Boolean]
+    decoder = if (isRange) intRangeDecoder else bitFieldDecoder(maxId.value)
+    intRange <- decoder
+  } yield IntSetImpl(maxId.value, intRange)
 
-    def decode(offset: Int, arr: Array[Byte]): DecodedResult[IntSetDecoder] = {
-
-      val DecodedResult(_, newOffset, (maxId, isRange)) = Decoder.tupled(Decoder[Int16], Decoder[Boolean]).decode(offset, arr)
-
-      //      val maxId = Decoder[Int16].decode(offset, arr).value
-      //      val isRange = Decoder[Boolean].decode(offset + 16, arr)
-
-      if (isRange) {
-
-        val DecodedResult(size, _, intRange) = intRangeDecoder.decode(newOffset, arr)
-
-        val decoder: Decoder[IntSet] = Decoder.pure(IntSetImpl(maxId.value, intRange))
-
-        DecodedResult(0, 0, IntSetDecoder(offset, size + 17, arr, decoder))
-      } else {
-        DecodedResult(0, 0, IntSetDecoder(offset, maxId.value + 17, arr, bitFieldDec(maxId.value)))
-      }
-    }
-  }
+//  implicit val intSetDecoderDecoder: Decoder[IntSetDecoder] = new Decoder[IntSetDecoder] {
+//
+//    def bitFieldDec(size: Int): Decoder[IntSet] = new Decoder[IntSet] {
+//      def decode(offset: Int, arr: Array[Byte]): DecodedResult[IntSet] = ???
+//    }
+//
+//    def decode(offset: Int, arr: Array[Byte]): DecodedResult[IntSetDecoder] = {
+//
+//      val DecodedResult(_, newOffset, (maxId, isRange)) = Decoder.tupled(Decoder[Int16], Decoder[Boolean]).decode(offset, arr)
+//
+//      if (isRange) {
+//
+//        val DecodedResult(size, _, intRange) = intRangeDecoder.decode(newOffset, arr)
+//
+//        val decoder: Decoder[IntSet] = Decoder.pure(IntSetImpl(maxId.value, intRange))
+//
+//        DecodedResult(0, 0, IntSetDecoder(offset, size + 17, arr, decoder))
+//      } else {
+//        DecodedResult(0, 0, IntSetDecoder(offset, maxId.value + 17, arr, bitFieldDec(maxId.value)))
+//      }
+//    }
+//  }
 
   /**
    * @size - how much bits were consumed to decode the value
    */
   case class DecodedResult[A](size: Int, offset: Int, value: A)
 
-  case class IntSetDecoder(offset: Int, size: Int, arr: Array[Byte], underlying: Decoder[IntSet]) {
-    def decode: IntSet = underlying.decode(offset, arr).value
-  }
+//  case class IntSetDecoder(offset: Int, size: Int, arr: Array[Byte], underlying: Decoder[IntSet]) {
+//    def decode: IntSet = underlying.decode(offset, arr).value
+//  }
 
   sealed trait IntSet {
     def contains(key: Int): Boolean
