@@ -127,7 +127,18 @@ object Decoder {
     }
   }
 
-  private def bitFieldDecoder(size: Int): Decoder[IntRange] = ??? //  Decoder.sequenceDecoder[Boolean](size)
+  private def bitFieldDecoder(size: Int): Decoder[IntRange] =
+    Decoder.sequenceDecoder[Boolean](size).map { xs =>
+      import collection.mutable
+      val (_, value) = xs.foldLeft(1 -> mutable.Set.empty[Int]) { case ((cnt, acc), x) =>
+        if (x) {
+          acc += cnt
+        }
+        (cnt + 1, acc)
+      }
+      IntRangeImpl(value.toSet)
+    }
+
 
   implicit val intSetDecoder: Decoder[IntSet] = for {
     maxId <- Decoder[Int16]

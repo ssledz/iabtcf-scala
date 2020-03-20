@@ -6,8 +6,9 @@ import java.util.Base64
 import enumeratum.EnumEntry.Camelcase
 import enumeratum.values.{IntEnum, IntEnumEntry}
 import io.github.ssledz.Decoder.{Country, DecodedResult, Int12, Int2, Int6, IntRange, IntSet, Lang}
-import io.github.ssledz.TCString.CoreSegment.PublisherRestrictions.PurposeRestriction
-import io.github.ssledz.TCString.CoreSegment._
+import io.github.ssledz.TCString.CoreSegment.VendorConsents
+import io.github.ssledz.TCString.CoreSegmentVersionTwo.PublisherRestrictions.PurposeRestriction
+import io.github.ssledz.TCString.CoreSegmentVersionTwo._
 import io.github.ssledz.fp.Show
 import io.github.ssledz.fp.Show._
 
@@ -16,16 +17,24 @@ import scala.annotation.tailrec
 object TCString {
 
   def parse(value: String): TCModel = {
-    TCModel(CoreSegment(value.split('.').head))
+    val segments = value.split('.')
+    val coreSegment = segments.head
+    val arr = Base64.getUrlDecoder.decode(coreSegment)
+    val version = Decoder[Int6].decode(0, arr).value.value
+    if (version == 1) {
+      TCModel(CoreSegmentVersionOne(version, arr))
+    } else {
+      TCModel(CoreSegmentVersionTwo(version, arr))
+    }
   }
 
   sealed trait TCSegment
 
-  case class CoreSegment(value: String) extends TCSegment {
+  sealed trait CoreSegment extends TCSegment {
 
-    private lazy val arr = Base64.getUrlDecoder.decode(value)
+    protected def arr: Array[Byte]
 
-    lazy val version: Int = Decoder[Int6].decode(0, arr).value.value
+    val version: Int
     lazy val created: ZonedDateTime = Decoder[ZonedDateTime].decode(6, arr).value
     lazy val updated: ZonedDateTime = Decoder[ZonedDateTime].decode(42, arr).value
     lazy val cmpId: Int = Decoder[Int12].decode(78, arr).value.value
@@ -33,6 +42,56 @@ object TCString {
     lazy val consentScreen: Int = Decoder[Int6].decode(102, arr).value.value
     lazy val consentLanguage: Lang = Decoder[Lang].decode(108, arr).value
     lazy val vendorListVersion: Int = Decoder[Int12].decode(120, arr).value.value
+
+    def purposesConsent: IndexedSeq[Boolean]
+
+    def vendorConsents: VendorConsents
+  }
+
+  object CoreSegment {
+
+    implicit val coreShowInstance: Show[CoreSegment] = {
+      case aa: CoreSegmentVersionOne => aa.show
+      case aa: CoreSegmentVersionTwo => aa.show
+    }
+
+    import IntSet._
+
+    class VendorConsents(private val underlying: IntSet) extends AnyVal {
+      def hasConsent(vendorId: Int): Boolean = underlying.contains(vendorId)
+    }
+
+    object VendorConsents {
+      implicit val vendorConsentsShowInstance: Show[VendorConsents] = _.underlying.show
+    }
+
+  }
+
+  case class CoreSegmentVersionOne(version: Int, protected val arr: Array[Byte]) extends CoreSegment {
+
+    lazy val purposesConsent: IndexedSeq[Boolean] = Decoder.sequenceDecoder[Boolean](24).decode(132, arr).value
+
+    lazy val vendorConsents: VendorConsents = new VendorConsents(Decoder[IntSet].decode(156, arr).value)
+  }
+
+  object CoreSegmentVersionOne {
+    implicit val coreV1ShowInstance: Show[CoreSegmentVersionOne] = (a: CoreSegmentVersionOne) =>
+      s"""
+         |version                  : ${a.version}
+         |created                  : ${a.created}
+         |updated                  : ${a.updated}
+         |cmpId                    : ${a.cmpId}
+         |cmpVersion               : ${a.cmpVersion}
+         |consentScreen            : ${a.consentScreen}
+         |consentLanguage          : ${a.consentLanguage}
+         |vendorListVersion        : ${a.vendorListVersion}
+         |purposesConsent          : ${a.purposesConsent}
+         |vendorConsents           : ${a.vendorConsents.show}
+         |""".stripMargin
+  }
+
+  case class CoreSegmentVersionTwo(version: Int, protected val arr: Array[Byte]) extends CoreSegment {
+
     lazy val tcfPolicyVersion: Int = Decoder[Int6].decode(132, arr).value.value
     lazy val isServiceSpecific: Boolean = Decoder[Boolean].decode(138, arr).value
     lazy val useNonStandardStacks: Boolean = Decoder[Boolean].decode(139, arr).value
@@ -55,9 +114,9 @@ object TCString {
 
   }
 
-  object CoreSegment {
+  object CoreSegmentVersionTwo {
 
-    implicit val coreShowInstance: Show[CoreSegment] = (a: CoreSegment) =>
+    implicit val coreV2ShowInstance: Show[CoreSegmentVersionTwo] = (a: CoreSegmentVersionTwo) =>
       s"""
          |version                  : ${a.version}
          |created                  : ${a.created}
@@ -178,14 +237,6 @@ object TCString {
 
     object VendorLegitimateInterest {
       implicit val vendorLegitimateInterestShowInstance: Show[VendorLegitimateInterest] = _.underlying.show
-    }
-
-    class VendorConsents(private val underlying: IntSet) extends AnyVal {
-      def hasConsent(vendorId: Int): Boolean = underlying.contains(vendorId)
-    }
-
-    object VendorConsents {
-      implicit val vendorConsentsShowInstance: Show[VendorConsents] = _.underlying.show
     }
 
   }
