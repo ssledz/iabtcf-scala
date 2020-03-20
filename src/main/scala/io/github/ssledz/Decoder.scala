@@ -103,25 +103,27 @@ object Decoder {
 
   implicit val intRangeDecoder: Decoder[IntRange] = new Decoder[IntRange] {
 
+    implicit val boolInt16Decoder: Decoder[(Boolean, Int16)] = Decoder.tupled(Decoder[Boolean], Decoder[Int16])
+
     def decode(offset: Int, arr: Array[Byte]): DecodedResult[IntRange] = {
 
-      val DecodedResult(_, numEntries) = Decoder[Int12].decode(offset, arr)
-
       @tailrec
-      def go(offset: Int, numEntries: Int, size: Int, ranges: List[Range] = List.empty, elems: Set[Int] = Set.empty): DecodedResult[IntRange] =
+      def go(offset: Int, numEntries: Int, ranges: List[Range] = List.empty, elems: Set[Int] = Set.empty): DecodedResult[IntRange] =
         if (numEntries == 0) {
           DecodedResult(offset, IntRangeImpl(elems, ranges))
         } else {
-          val DecodedResult(newOffset, (isRange, startIdx)) = Decoder.tupled(Decoder[Boolean], Decoder[Int16]).decode(offset, arr)
+          val DecodedResult(offsetB, (isRange, startIdx)) = Decoder[(Boolean, Int16)].decode(offset, arr)
           if (isRange) {
-            val endIdx = Decoder[Int16].decode(newOffset, arr).value
-            go(newOffset + 16, numEntries - 1, size + 33, (startIdx.value to endIdx.value) :: ranges, elems)
+            val DecodedResult(offsetC, endIdx) = Decoder[Int16].decode(offsetB, arr)
+            go(offsetC, numEntries - 1, (startIdx.value to endIdx.value) :: ranges, elems)
           } else {
-            go(newOffset, numEntries - 1, size + 17, ranges, elems + startIdx.value)
+            go(offsetB, numEntries - 1, ranges, elems + startIdx.value)
           }
         }
 
-      go(offset + 12, numEntries.value, 12)
+      val DecodedResult(offsetA, numEntries) = Decoder[Int12].decode(offset, arr)
+
+      go(offsetA, numEntries.value)
     }
   }
 
