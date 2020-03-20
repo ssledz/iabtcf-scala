@@ -148,7 +148,7 @@ object Decoder {
   } yield IntSetImpl(maxId.value, intRange)
 
   /**
-   * @offset - current offset after decoding value
+   * @param offset - current offset after decoding value
    */
   case class DecodedResult[A](offset: Int, value: A)
 
@@ -157,9 +157,11 @@ object Decoder {
   }
 
   object IntSet {
-    implicit val intSetShowInstance: Show[IntSet] = {
-      case s@IntSetImpl(max, _) => (1 to max).filter(s.contains).map(i => s"$i -> true").toString
-      case _ => "???"
+    implicit val intSetShowInstance: Show[IntSet] = new Show[IntSet] {
+      def show(a: IntSet): String = a match {
+        case s@IntSetImpl(max, _) => (1 to max).filter(s.contains).map(i => s"$i -> true").toString
+        case _ => "???"
+      }
     }
   }
 
@@ -175,9 +177,11 @@ object Decoder {
 
   object IntRange {
     val empty: IntRange = IntRangeImpl()
-    implicit val intRangeShowInstance: Show[IntRange] = {
-      case IntRangeImpl(elems, ranges) => (ranges.toSet.flatMap((r: Range) => r.toSet) ++ elems).toList.sorted.toString
-      case _ => "???"
+    implicit val intRangeShowInstance: Show[IntRange] = new Show[IntRange] {
+      def show(a: IntRange): String = a match {
+        case IntRangeImpl(elems, ranges) => (ranges.toSet.flatMap((r: Range) => r.toSet) ++ elems).toList.sorted.toString
+        case _ => "???"
+      }
     }
   }
 

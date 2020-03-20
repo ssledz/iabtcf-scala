@@ -50,9 +50,11 @@ object TCString {
 
   object CoreSegment {
 
-    implicit val coreShowInstance: Show[CoreSegment] = {
-      case aa: CoreSegmentVersionOne => aa.show
-      case aa: CoreSegmentVersionTwo => aa.show
+    implicit val coreShowInstance: Show[CoreSegment] = new Show[CoreSegment] {
+      def show(a: CoreSegment): String = a match {
+        case aa: CoreSegmentVersionOne => aa.show
+        case aa: CoreSegmentVersionTwo => aa.show
+      }
     }
 
     import IntSet._
@@ -62,7 +64,9 @@ object TCString {
     }
 
     object VendorConsents {
-      implicit val vendorConsentsShowInstance: Show[VendorConsents] = _.underlying.show
+      implicit val vendorConsentsShowInstance: Show[VendorConsents] = new Show[VendorConsents] {
+        def show(a: VendorConsents): String = a.underlying.show
+      }
     }
 
   }
@@ -75,19 +79,21 @@ object TCString {
   }
 
   object CoreSegmentVersionOne {
-    implicit val coreV1ShowInstance: Show[CoreSegmentVersionOne] = (a: CoreSegmentVersionOne) =>
-      s"""
-         |version                  : ${a.version}
-         |created                  : ${a.created}
-         |updated                  : ${a.updated}
-         |cmpId                    : ${a.cmpId}
-         |cmpVersion               : ${a.cmpVersion}
-         |consentScreen            : ${a.consentScreen}
-         |consentLanguage          : ${a.consentLanguage}
-         |vendorListVersion        : ${a.vendorListVersion}
-         |purposesConsent          : ${a.purposesConsent}
-         |vendorConsents           : ${a.vendorConsents.show}
-         |""".stripMargin
+    implicit val coreV1ShowInstance: Show[CoreSegmentVersionOne] = new Show[CoreSegmentVersionOne] {
+      def show(a: CoreSegmentVersionOne): String =
+        s"""
+           |version                  : ${a.version}
+           |created                  : ${a.created}
+           |updated                  : ${a.updated}
+           |cmpId                    : ${a.cmpId}
+           |cmpVersion               : ${a.cmpVersion}
+           |consentScreen            : ${a.consentScreen}
+           |consentLanguage          : ${a.consentLanguage}
+           |vendorListVersion        : ${a.vendorListVersion}
+           |purposesConsent          : ${a.purposesConsent}
+           |vendorConsents           : ${a.vendorConsents.show}
+           |""".stripMargin
+    }
   }
 
   case class CoreSegmentVersionTwo(version: Int, protected val arr: Array[Byte]) extends CoreSegment {
@@ -116,28 +122,30 @@ object TCString {
 
   object CoreSegmentVersionTwo {
 
-    implicit val coreV2ShowInstance: Show[CoreSegmentVersionTwo] = (a: CoreSegmentVersionTwo) =>
-      s"""
-         |version                  : ${a.version}
-         |created                  : ${a.created}
-         |updated                  : ${a.updated}
-         |cmpId                    : ${a.cmpId}
-         |cmpVersion               : ${a.cmpVersion}
-         |consentScreen            : ${a.consentScreen}
-         |consentLanguage          : ${a.consentLanguage}
-         |vendorListVersion        : ${a.vendorListVersion}
-         |tcfPolicyVersion         : ${a.tcfPolicyVersion}
-         |isServiceSpecific        : ${a.isServiceSpecific}
-         |useNonStandardStacks     : ${a.useNonStandardStacks}
-         |specialFeatureOptIns     : ${a.specialFeatureOptIns}
-         |purposesConsent          : ${a.purposesConsent}
-         |purposesLITransparency   : ${a.purposesLITransparency}
-         |purposeOneTreatment      : ${a.purposeOneTreatment}
-         |publisherCountryCode     : ${a.publisherCountryCode}
-         |vendorConsents           : ${a.vendorConsents.show}
-         |vendorLegitimateInterest : ${a.vendorLegitimateInterest.show}
-         |publisherRestrictions    : ${a.publisherRestrictions.show}
-         |""".stripMargin
+    implicit val coreV2ShowInstance: Show[CoreSegmentVersionTwo] = new Show[CoreSegmentVersionTwo] {
+      def show(a: CoreSegmentVersionTwo): String =
+        s"""
+           |version                  : ${a.version}
+           |created                  : ${a.created}
+           |updated                  : ${a.updated}
+           |cmpId                    : ${a.cmpId}
+           |cmpVersion               : ${a.cmpVersion}
+           |consentScreen            : ${a.consentScreen}
+           |consentLanguage          : ${a.consentLanguage}
+           |vendorListVersion        : ${a.vendorListVersion}
+           |tcfPolicyVersion         : ${a.tcfPolicyVersion}
+           |isServiceSpecific        : ${a.isServiceSpecific}
+           |useNonStandardStacks     : ${a.useNonStandardStacks}
+           |specialFeatureOptIns     : ${a.specialFeatureOptIns}
+           |purposesConsent          : ${a.purposesConsent}
+           |purposesLITransparency   : ${a.purposesLITransparency}
+           |purposeOneTreatment      : ${a.purposeOneTreatment}
+           |publisherCountryCode     : ${a.publisherCountryCode}
+           |vendorConsents           : ${a.vendorConsents.show}
+           |vendorLegitimateInterest : ${a.vendorLegitimateInterest.show}
+           |publisherRestrictions    : ${a.publisherRestrictions.show}
+           |""".stripMargin
+    }
 
     case class PublisherRestrictions(private val xs: List[(PurposeRestriction, IntRange)]) {
 
@@ -195,8 +203,9 @@ object TCString {
         }
       }
 
-      implicit val publisherRestrictionsShowInstance: Show[PublisherRestrictions] = (prs: PublisherRestrictions) =>
-        prs.allVendors.map(id => s"$id -> ${prs.restrictions(id).map(_.show)}").toString
+      implicit val publisherRestrictionsShowInstance: Show[PublisherRestrictions] = new Show[PublisherRestrictions] {
+        def show(prs: PublisherRestrictions): String = prs.allVendors.map(id => s"$id -> ${prs.restrictions(id).map(_.show)}").toString
+      }
 
       case class PurposeRestriction(purposeId: Int, restrictionType: RestrictionType)
 
@@ -208,7 +217,10 @@ object TCString {
             restrictionType <- Decoder[RestrictionType]
           } yield PurposeRestriction(purposeId.value, restrictionType)
 
-        implicit val purposeRestrictionShowInstance: Show[PurposeRestriction] = pr => s"${pr.purposeId}::${pr.restrictionType.entryName}"
+        implicit val purposeRestrictionShowInstance: Show[PurposeRestriction] = new Show[PurposeRestriction] {
+          override def show(pr: PurposeRestriction): String = s"${pr.purposeId}::${pr.restrictionType.entryName}"
+        }
+
       }
 
       sealed abstract class RestrictionType private(val value: Int) extends IntEnumEntry with Camelcase
@@ -217,7 +229,7 @@ object TCString {
 
         implicit val restrictionTypeDecoder: Decoder[RestrictionType] = Decoder[Int2].map(id => RestrictionType.withValue(id.value))
 
-        val values: IndexedSeq[RestrictionType] = findValues
+        val values = findValues
 
         case object NotAllowed extends RestrictionType(0)
 
@@ -236,18 +248,19 @@ object TCString {
     import IntSet._
 
     object VendorLegitimateInterest {
-      implicit val vendorLegitimateInterestShowInstance: Show[VendorLegitimateInterest] = _.underlying.show
+      implicit val vendorLegitimateInterestShowInstance: Show[VendorLegitimateInterest] = new Show[VendorLegitimateInterest] {
+        def show(a: VendorLegitimateInterest): String = a.underlying.show
+      }
     }
 
   }
 
-  case class TCModel(core: CoreSegment, segments: Map[TCSegmentType, TCSegment] = Map.empty) {
-  }
+  case class TCModel(core: CoreSegment, segments: Map[TCSegmentType, TCSegment] = Map.empty)
 
   sealed abstract class TCSegmentType private(val value: Int) extends IntEnumEntry
 
   object TCSegmentType extends IntEnum[TCSegmentType] {
-    val values: IndexedSeq[TCSegmentType] = findValues
+    val values = findValues
 
     case object Core extends TCSegmentType(0)
 
