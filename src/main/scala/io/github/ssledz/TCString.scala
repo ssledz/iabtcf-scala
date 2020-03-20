@@ -36,9 +36,9 @@ object TCString {
     lazy val tcfPolicyVersion: Int = Decoder[Int6].decode(132, arr).value.value
     lazy val isServiceSpecific: Boolean = Decoder[Boolean].decode(138, arr).value
     lazy val useNonStandardStacks: Boolean = Decoder[Boolean].decode(139, arr).value
-    lazy val specialFeatureOptIns: IndexedSeq[Boolean] = (0 until 12).toVector.map(i => Decoder[Boolean].decode(140 + i, arr).value)
-    lazy val purposesConsent: IndexedSeq[Boolean] = (0 until 24).toVector.map(i => Decoder[Boolean].decode(152 + i, arr).value)
-    lazy val purposesLITransparency: IndexedSeq[Boolean] = (0 until 24).toVector.map(i => Decoder[Boolean].decode(176 + i, arr).value)
+    lazy val specialFeatureOptIns: IndexedSeq[Boolean] = Decoder.sequenceDecoder[Boolean](12).decode(140, arr).value
+    lazy val purposesConsent: IndexedSeq[Boolean] = Decoder.sequenceDecoder[Boolean](24).decode(152, arr).value
+    lazy val purposesLITransparency: IndexedSeq[Boolean] = Decoder.sequenceDecoder[Boolean](24).decode(176, arr).value
     lazy val purposeOneTreatment: Boolean = Decoder[Boolean].decode(200, arr).value
     lazy val publisherCC: Country = Decoder[Country].decode(201, arr).value
 //

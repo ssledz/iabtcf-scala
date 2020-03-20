@@ -52,7 +52,22 @@ object Decoder {
 
   def tupled[A, B](fa: Decoder[A], fb: Decoder[B]): Decoder[(A, B)] = fa.map2(fb)(_ -> _)
 
-  def sequence[A](xs : IndexedSeq[Decoder[A]]) : Decoder[IndexedSeq[A]] = ???
+  def sequence[A](xs: IndexedSeq[Decoder[A]]): Decoder[IndexedSeq[A]] = {
+
+    def go(xs: IndexedSeq[Decoder[A]], acc: Decoder[IndexedSeq[A]]): Decoder[IndexedSeq[A]] = xs.headOption match {
+      case Some(ha) =>
+        val newAcc = for {
+        a <- ha
+        as <- acc
+      } yield as :+ a
+        go(xs.tail, newAcc)
+      case None => acc
+    }
+
+    go(xs, Decoder.pure(Vector.empty))
+  }
+
+  def sequenceDecoder[A: Decoder](size: Int): Decoder[IndexedSeq[A]] = sequence(Vector.fill(size)(Decoder[A]))
 
   implicit val boolDecoder: Decoder[Boolean] = new Decoder[Boolean] {
     def decode(offset: Int, arr: Array[Byte]): DecodedResult[Boolean] = DecodedResult(1, offset + 1, arr.bit(offset))
