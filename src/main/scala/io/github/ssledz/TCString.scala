@@ -99,7 +99,7 @@ object TCString {
     lazy val purposesConsent: IndexedSeq[Boolean] = Decoder.sequenceDecoder[Boolean](24).decode(152, arr).value
     lazy val purposesLITransparency: IndexedSeq[Boolean] = Decoder.sequenceDecoder[Boolean](24).decode(176, arr).value
     lazy val purposeOneTreatment: Boolean = Decoder[Boolean].decode(200, arr).value
-    lazy val publisherCC: Country = Decoder[Country].decode(201, arr).value
+    lazy val publisherCountryCode: Country = Decoder[Country].decode(201, arr).value
 
     private lazy val vendorConsentsDecodedResult = Decoder[IntSet].decode(213, arr)
 
@@ -133,7 +133,7 @@ object TCString {
          |purposesConsent          : ${a.purposesConsent}
          |purposesLITransparency   : ${a.purposesLITransparency}
          |purposeOneTreatment      : ${a.purposeOneTreatment}
-         |publisherCountryCode     : ${a.publisherCC}
+         |publisherCountryCode     : ${a.publisherCountryCode}
          |vendorConsents           : ${a.vendorConsents.show}
          |vendorLegitimateInterest : ${a.vendorLegitimateInterest.show}
          |publisherRestrictions    : ${a.publisherRestrictions.show}
