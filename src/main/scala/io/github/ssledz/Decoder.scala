@@ -25,18 +25,12 @@ trait Decoder[A] {
     fb.ap(fbc)
   }
 
+  def map[B](f: A => B): Decoder[B] = flatMap(a => Decoder.pure(f(a)))
+
   def flatMap[B](f: A => Decoder[B]): Decoder[B] = new Decoder[B] {
     def decode(offset: Int, arr: Array[Byte]): DecodedResult[B] = {
-      val DecodedResult(size, newOffset, a) = self.decode(offset, arr)
-      val res = f(a).decode(newOffset, arr)
-      res.copy(size = res.size + size)
-    }
-  }
-
-  def map[B](f: A => B): Decoder[B] = new Decoder[B] {
-    def decode(offset: Int, arr: Array[Byte]): DecodedResult[B] = {
-      val res = self.decode(offset, arr)
-      res.copy(value = f(res.value))
+      val DecodedResult(newOffset, a) = self.decode(offset, arr)
+      f(a).decode(newOffset, arr)
     }
   }
 
@@ -47,7 +41,7 @@ object Decoder {
   def apply[A: Decoder]: Decoder[A] = implicitly[Decoder[A]]
 
   def pure[A](value: A): Decoder[A] = new Decoder[A] {
-    def decode(offset: Int, arr: Array[Byte]): DecodedResult[A] = DecodedResult(0, offset, value)
+    def decode(offset: Int, arr: Array[Byte]): DecodedResult[A] = DecodedResult(offset, value)
   }
 
   def tupled[A, B](fa: Decoder[A], fb: Decoder[B]): Decoder[(A, B)] = fa.map2(fb)(_ -> _)
@@ -70,32 +64,32 @@ object Decoder {
   def sequenceDecoder[A: Decoder](size: Int): Decoder[IndexedSeq[A]] = sequence(Vector.fill(size)(Decoder[A]))
 
   implicit val boolDecoder: Decoder[Boolean] = new Decoder[Boolean] {
-    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Boolean] = DecodedResult(1, offset + 1, arr.bit(offset))
+    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Boolean] = DecodedResult(offset + 1, arr.bit(offset))
   }
 
   implicit val int6Decoder: Decoder[Int6] = new Decoder[Int6] {
-    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Int6] = DecodedResult(6, offset + 6, Int6(arr.int(offset, 6)))
+    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Int6] = DecodedResult(offset + 6, Int6(arr.int(offset, 6)))
   }
 
   implicit val int2Decoder: Decoder[Int2] = new Decoder[Int2] {
-    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Int2] = DecodedResult(2, offset + 2, Int2(arr.int(offset, 2)))
+    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Int2] = DecodedResult(offset + 2, Int2(arr.int(offset, 2)))
   }
 
   implicit val int12Decoder: Decoder[Int12] = new Decoder[Int12] {
-    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Int12] = DecodedResult(12, offset + 12, Int12(arr.int(offset, 12)))
+    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Int12] = DecodedResult(offset + 12, Int12(arr.int(offset, 12)))
   }
 
   implicit val int16Decoder: Decoder[Int16] = new Decoder[Int16] {
-    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Int16] = DecodedResult(16, offset + 16, Int16(arr.int(offset, 16)))
+    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Int16] = DecodedResult(offset + 16, Int16(arr.int(offset, 16)))
   }
 
   implicit val char6Decoder: Decoder[Char6] = new Decoder[Char6] {
-    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Char6] = DecodedResult(6, offset + 6, Char6(('a' + arr.int(offset, 6)).toChar))
+    def decode(offset: Int, arr: Array[Byte]): DecodedResult[Char6] = DecodedResult(offset + 6, Char6(('a' + arr.int(offset, 6)).toChar))
   }
 
   implicit val dateTimeDecoder: Decoder[ZonedDateTime] = new Decoder[ZonedDateTime] {
     def decode(offset: Int, arr: Array[Byte]): DecodedResult[ZonedDateTime] =
-      DecodedResult(36, offset + 36, ZonedDateTime.ofInstant(Instant.ofEpochSecond(arr.long(offset, 36) / 10), ZoneId.systemDefault()))
+      DecodedResult(offset + 36, ZonedDateTime.ofInstant(Instant.ofEpochSecond(arr.long(offset, 36) / 10), ZoneId.systemDefault()))
   }
 
   private val str2Decoder: Decoder[String] = for {
@@ -111,20 +105,15 @@ object Decoder {
 
     def decode(offset: Int, arr: Array[Byte]): DecodedResult[IntRange] = {
 
-      val DecodedResult(_, _, numEntries) = Decoder[Int12].decode(offset, arr)
+      val DecodedResult(_, numEntries) = Decoder[Int12].decode(offset, arr)
 
       @tailrec
       def go(offset: Int, numEntries: Int, size: Int, ranges: List[Range] = List.empty, elems: Set[Int] = Set.empty): DecodedResult[IntRange] =
         if (numEntries == 0) {
-          DecodedResult(size, offset, IntRangeImpl(elems, ranges))
+          DecodedResult(offset, IntRangeImpl(elems, ranges))
         } else {
-
-          val DecodedResult(_, newOffset, (isRange, startIdx)) = Decoder.tupled(Decoder[Boolean], Decoder[Int16]).decode(offset, arr)
-
-          //          val isRange = Decoder[Boolean].decode(offset, arr)
-          //          val startIdx = Decoder[Int16].decode(offset + 1, arr).value
+          val DecodedResult(newOffset, (isRange, startIdx)) = Decoder.tupled(Decoder[Boolean], Decoder[Int16]).decode(offset, arr)
           if (isRange) {
-            //            val endIdx = Decoder[Int16].decode(offset + 17, arr).value
             val endIdx = Decoder[Int16].decode(newOffset, arr).value
             go(newOffset + 16, numEntries - 1, size + 33, (startIdx.value to endIdx.value) :: ranges, elems)
           } else {
@@ -145,37 +134,10 @@ object Decoder {
     intRange <- decoder
   } yield IntSetImpl(maxId.value, intRange)
 
-//  implicit val intSetDecoderDecoder: Decoder[IntSetDecoder] = new Decoder[IntSetDecoder] {
-//
-//    def bitFieldDec(size: Int): Decoder[IntSet] = new Decoder[IntSet] {
-//      def decode(offset: Int, arr: Array[Byte]): DecodedResult[IntSet] = ???
-//    }
-//
-//    def decode(offset: Int, arr: Array[Byte]): DecodedResult[IntSetDecoder] = {
-//
-//      val DecodedResult(_, newOffset, (maxId, isRange)) = Decoder.tupled(Decoder[Int16], Decoder[Boolean]).decode(offset, arr)
-//
-//      if (isRange) {
-//
-//        val DecodedResult(size, _, intRange) = intRangeDecoder.decode(newOffset, arr)
-//
-//        val decoder: Decoder[IntSet] = Decoder.pure(IntSetImpl(maxId.value, intRange))
-//
-//        DecodedResult(0, 0, IntSetDecoder(offset, size + 17, arr, decoder))
-//      } else {
-//        DecodedResult(0, 0, IntSetDecoder(offset, maxId.value + 17, arr, bitFieldDec(maxId.value)))
-//      }
-//    }
-//  }
-
   /**
-   * @size - how much bits were consumed to decode the value
+   * @offset - current offset after decoding value
    */
-  case class DecodedResult[A](size: Int, offset: Int, value: A)
-
-//  case class IntSetDecoder(offset: Int, size: Int, arr: Array[Byte], underlying: Decoder[IntSet]) {
-//    def decode: IntSet = underlying.decode(offset, arr).value
-//  }
+  case class DecodedResult[A](offset: Int, value: A)
 
   sealed trait IntSet {
     def contains(key: Int): Boolean

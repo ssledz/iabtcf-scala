@@ -115,23 +115,23 @@ object TCString {
 
         def decode(offset: Int, arr: Array[Byte]): DecodedResult[Option[PublisherRestrictions]] = {
 
-          val DecodedResult(_, newOffset, numOfRestrictions) = Decoder[Int12].decode(offset, arr)
+          val DecodedResult(newOffset, numOfRestrictions) = Decoder[Int12].decode(offset, arr)
 
           if (numOfRestrictions.value == 0) {
-            DecodedResult(0, newOffset, None)
+            DecodedResult(newOffset, None)
           } else {
             @tailrec
             def go(offset: Int, cnt: Int, acc: List[(PurposeRestriction, IntRange)] = List.empty): DecodedResult[List[(PurposeRestriction, IntRange)]] = {
               if (cnt == 0) {
-                DecodedResult(0, offset, acc)
+                DecodedResult(offset, acc)
               } else {
-                val DecodedResult(_, newOffset, restriction) = Decoder[(PurposeRestriction, IntRange)].decode(offset, arr)
+                val DecodedResult(newOffset, restriction) = Decoder[(PurposeRestriction, IntRange)].decode(offset, arr)
                 go(newOffset, cnt - 1, restriction :: acc)
               }
             }
 
-            val DecodedResult(_, offset, restrictions) = go(newOffset, numOfRestrictions.value)
-            DecodedResult(0, offset, Some(PublisherRestrictions(restrictions)))
+            val DecodedResult(offset, restrictions) = go(newOffset, numOfRestrictions.value)
+            DecodedResult(offset, Some(PublisherRestrictions(restrictions)))
           }
         }
       }
