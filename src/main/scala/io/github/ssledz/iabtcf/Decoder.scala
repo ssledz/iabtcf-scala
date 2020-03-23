@@ -111,7 +111,7 @@ object Decoder {
       @tailrec
       def go(offset: Int, numEntries: Int, ranges: List[Range] = List.empty, elems: Set[Int] = Set.empty): DecodedResult[IntRange] =
         if (numEntries == 0) {
-          DecodedResult(offset, IntRangeImpl(elems, ranges))
+          DecodedResult(offset, DefaultIntRange(elems, ranges))
         } else {
           val DecodedResult(offsetB, (isRange, startIdx)) = Decoder[(Boolean, Int16)].decode(offset, arr)
           if (isRange) {
@@ -137,9 +137,25 @@ object Decoder {
         }
         (cnt + 1, acc)
       }
-      IntRangeImpl(value.toSet)
+      DefaultIntRange(value.toSet)
     }
 
+  implicit val legacyIntSetDecoder: Decoder[LegacyIntSet] = for {
+    maxId <- Decoder[Int16]
+    _ = println("maxId: " + maxId)
+    isRange <- Decoder[Boolean]
+    _ = println("isRange: " + isRange)
+    decoder = if (isRange) {
+      Decoder.tupled(Decoder[Boolean].map(Option.apply), intRangeDecoder)
+    } else {
+      Decoder.tupled(Decoder.pure(None: Option[Boolean]), bitFieldDecoder(maxId.value))
+    }
+    decodedRes <- decoder
+    (defaultValue, intRange) = decodedRes
+  } yield defaultValue match {
+    case Some(value) => LegacyIntSet(IntSetImpl(maxId.value, intRange.withDefaultValue(value)))
+    case None => LegacyIntSet(IntSetImpl(maxId.value, intRange))
+  }
 
   implicit val intSetDecoder: Decoder[IntSet] = for {
     maxId <- Decoder[Int16]
@@ -157,6 +173,8 @@ object Decoder {
     def contains(key: Int): Boolean
   }
 
+  case class LegacyIntSet(underlying: IntSet) extends AnyVal
+
   object IntSet {
     implicit val intSetShowInstance: Show[IntSet] = new Show[IntSet] {
       def show(a: IntSet): String = a match {
@@ -167,29 +185,41 @@ object Decoder {
   }
 
   private case class IntSetImpl(max: Int, range: IntRange) extends IntSet {
-    def contains(key: Int): Boolean = range.contains(key)
+    def contains(key: Int): Boolean = if (key > max) false else range.contains(key)
   }
 
   sealed trait IntRange {
     def contains(key: Int): Boolean
 
     def toSeq: Seq[Int]
+
+    protected[iabtcf] def withDefaultValue(value: Boolean): IntRange
   }
 
   object IntRange {
-    val empty: IntRange = IntRangeImpl()
+    val empty: IntRange = DefaultIntRange()
     implicit val intRangeShowInstance: Show[IntRange] = new Show[IntRange] {
       def show(a: IntRange): String = a match {
-        case IntRangeImpl(elems, ranges) => (ranges.toSet.flatMap((r: Range) => r.toSet) ++ elems).toList.sorted.toString
+        case DefaultIntRange(elems, ranges) => (ranges.toSet.flatMap((r: Range) => r.toSet) ++ elems).toList.sorted.toString
         case _ => "???"
       }
     }
   }
 
-  private case class IntRangeImpl(elems: Set[Int] = Set.empty, ranges: List[Range] = List.empty) extends IntRange {
+  private case class IntRangeWithDefaultValue(elems: Set[Int] = Set.empty, ranges: List[Range] = List.empty, defaultValue: Boolean = false) extends IntRange {
+    def contains(key: Int): Boolean = if (elems.contains(key) || ranges.exists(_.contains(key))) !defaultValue else defaultValue
+
+    def toSeq: Seq[Int] = ranges.flatMap(_.toSet) ++ elems
+
+    protected[iabtcf] def withDefaultValue(value: Boolean): IntRange = this
+  }
+
+  private case class DefaultIntRange(elems: Set[Int] = Set.empty, ranges: List[Range] = List.empty) extends IntRange {
     def contains(key: Int): Boolean = elems.contains(key) || ranges.exists(_.contains(key))
 
     def toSeq: Seq[Int] = ranges.flatMap(_.toSet) ++ elems
+
+    protected[iabtcf] def withDefaultValue(value: Boolean): IntRange = IntRangeWithDefaultValue(elems, ranges, value)
   }
 
   case class Lang(value: String) extends AnyVal

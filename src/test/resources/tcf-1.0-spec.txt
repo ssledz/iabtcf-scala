@@ -43,3 +43,59 @@ consentLanguage          : Lang(IT)
 vendorListVersion        : 19
 purposesConsent          : Vector(1 -> true, 3 -> true, 5 -> true)
 vendorConsents           : Vector(1 -> true, 6 -> true, 10 -> true, 11 -> true, 21 -> true, 22 -> true, 23 -> true, 24 -> true, 27 -> true, 32 -> true, 34 -> true, 36 -> true, 39 -> true, 45 -> true, 50 -> true, 52 -> true, 57 -> true, 60 -> true, 61 -> true, 67 -> true, 68 -> true, 69 -> true, 70 -> true, 71 -> true, 74 -> true, 77 -> true, 78 -> true, 79 -> true, 81 -> true, 85 -> true, 86 -> true, 89 -> true, 91 -> true, 93 -> true, 95 -> true, 97 -> true, 109 -> true, 111 -> true, 112 -> true, 114 -> true, 118 -> true, 122 -> true, 126 -> true, 127 -> true, 128 -> true, 130 -> true, 140 -> true, 147 -> true, 150 -> true, 159 -> true, 177 -> true, 182 -> true, 193 -> true, 217 -> true, 225 -> true, 228 -> true, 230 -> true, 234 -> true, 237 -> true, 253 -> true, 259 -> true, 273 -> true, 285 -> true, 299 -> true, 304 -> true)
+
+== lang=en; cmpId=31; cmpVersion=234 ==
+BObdrPUOevsguAfDqFENCNAAAAAmeAAA
+
+version                  : 1
+created                  : 2019-02-04T22:16:05+01:00[Europe/Warsaw]
+updated                  : 2019-04-09T16:35:10+02:00[Europe/Warsaw]
+cmpId                    : 31
+cmpVersion               : 234
+consentScreen            : 5
+consentLanguage          : Lang(EN)
+vendorListVersion        : 141
+purposesConsent          : Vector()
+vendorConsents           : Vector()
+
+== cmpId=15; bit field encoded vendorConsents=[1,25,30] ==
+BOOzQoAOOzQoAAPAFSENCW-AIBACBAAABCA=
+
+version                  : 1
+created                  : 2018-06-04T02:00+02:00[Europe/Warsaw]
+updated                  : 2018-06-04T02:00+02:00[Europe/Warsaw]
+cmpId                    : 15
+cmpVersion               : 5
+consentScreen            : 18
+consentLanguage          : Lang(EN)
+vendorListVersion        : 150
+purposesConsent          : Vector(1 -> true, 2 -> true, 3 -> true, 4 -> true, 5 -> true, 15 -> true, 24 -> true)
+vendorConsents           : Vector(1 -> true, 25 -> true, 30 -> true)
+
+== range encoded(default false) vendorConsents=[1 to 25, 30]; purposesConsent=[1,2,3,4,5,15,24] ==
+BOOzQoAOOzQoAAPAFSENCW-AIBACCACgACADIAHg
+
+version                  : 1
+created                  : 2018-06-04T02:00+02:00[Europe/Warsaw]
+updated                  : 2018-06-04T02:00+02:00[Europe/Warsaw]
+cmpId                    : 15
+cmpVersion               : 5
+consentScreen            : 18
+consentLanguage          : Lang(EN)
+vendorListVersion        : 150
+purposesConsent          : Vector(1 -> true, 2 -> true, 3 -> true, 4 -> true, 5 -> true, 15 -> true, 24 -> true)
+vendorConsents           : Vector(1 -> true, 2 -> true, 3 -> true, 4 -> true, 5 -> true, 6 -> true, 7 -> true, 8 -> true, 9 -> true, 10 -> true, 11 -> true, 12 -> true, 13 -> true, 14 -> true, 15 -> true, 16 -> true, 17 -> true, 18 -> true, 19 -> true, 20 -> true, 21 -> true, 22 -> true, 23 -> true, 24 -> true, 25 -> true, 30 -> true)
+
+== range encoded(default true) vendorConsents=[2 to 24, 31 to 32]; ==
+BOOzQoAOOzQoAAPAFSENCW-AIBACDACAADABkAHg
+
+version                  : 1
+created                  : 2018-06-04T02:00+02:00[Europe/Warsaw]
+updated                  : 2018-06-04T02:00+02:00[Europe/Warsaw]
+cmpId                    : 15
+cmpVersion               : 5
+consentScreen            : 18
+consentLanguage          : Lang(EN)
+vendorListVersion        : 150
+purposesConsent          : Vector(1 -> true, 2 -> true, 3 -> true, 4 -> true, 5 -> true, 15 -> true, 24 -> true)
+vendorConsents           : Vector(2 -> true, 3 -> true, 4 -> true, 5 -> true, 6 -> true, 7 -> true, 8 -> true, 9 -> true, 10 -> true, 11 -> true, 12 -> true, 13 -> true, 14 -> true, 15 -> true, 16 -> true, 17 -> true, 18 -> true, 19 -> true, 20 -> true, 21 -> true, 22 -> true, 23 -> true, 24 -> true, 31 -> true, 32 -> true)

@@ -73,7 +73,7 @@ object TCString {
 
     lazy val purposesConsent: IndexedSeq[Boolean] = Decoder.sequenceDecoder[Boolean](24).decode(132, arr).value
 
-    lazy val vendorConsents: VendorConsents = new VendorConsents(Decoder[IntSet].decode(156, arr).value)
+    lazy val vendorConsents: VendorConsents = new VendorConsents(Decoder[LegacyIntSet].decode(156, arr).value.underlying)
   }
 
   private implicit val indexedBoolSeqShowInstance: Show[IndexedSeq[Boolean]] = new Show[IndexedSeq[Boolean]] {

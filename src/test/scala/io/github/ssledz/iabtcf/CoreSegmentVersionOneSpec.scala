@@ -1,5 +1,7 @@
 package io.github.ssledz.iabtcf
 
+import java.time.ZoneId
+
 import io.github.ssledz.iabtcf.CoreSegmentSpec._
 import io.github.ssledz.iabtcf.TCString.CoreSegment
 import io.github.ssledz.iabtcf.TCString.CoreSegment.VendorConsents._
@@ -14,8 +16,8 @@ class CoreSegmentVersionOneSpec extends CoreSegmentSpec {
     def show(a: CoreSegment): String =
       s"""
          |version                  : ${a.version}
-         |created                  : ${a.created}
-         |updated                  : ${a.updated}
+         |created                  : ${a.created.withZoneSameInstant(ZoneId.of("Europe/Warsaw"))}
+         |updated                  : ${a.updated.withZoneSameInstant(ZoneId.of("Europe/Warsaw"))}
          |cmpId                    : ${a.cmpId}
          |cmpVersion               : ${a.cmpVersion}
          |consentScreen            : ${a.consentScreen}
