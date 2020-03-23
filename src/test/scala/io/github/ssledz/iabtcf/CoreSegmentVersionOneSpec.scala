@@ -28,6 +28,8 @@ class CoreSegmentVersionOneSpec extends CoreSegmentSpec {
          |""".stripMargin.trim
   }
 
+  behavior of "parse in case of valid tcf 1.0 consent string"
+
   behave like testCoreSegment
 
 }

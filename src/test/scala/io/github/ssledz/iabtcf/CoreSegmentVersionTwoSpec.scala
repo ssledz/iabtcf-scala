@@ -40,8 +40,8 @@ class CoreSegmentVersionTwoSpec extends CoreSegmentSpec {
     }
   }
 
-  behave like testCoreSegment
-
   behavior of "parse in case of valid tcf 2.0 consent string"
+
+  behave like testCoreSegment
 
 }
