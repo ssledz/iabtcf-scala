@@ -30,6 +30,6 @@ class CoreSegmentVersionOneSpec extends CoreSegmentSpec {
 
   behavior of "parse in case of valid tcf 1.0 consent string"
 
-  behave like testCoreSegment
+  behave like testCoreSegment()
 
 }

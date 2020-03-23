@@ -17,7 +17,7 @@ trait CoreSegmentSpec extends AnyFlatSpec {
 
   behavior of "TCString.parse in case of valid consent string"
 
-  def testCoreSegment: Unit = {
+  def testCoreSegment(): Unit = {
 
     bracket(Source.fromFile(classOf[CoreSegmentSpec].getClassLoader.getResource(filePath).toURI)) { lines =>
 
