@@ -61,7 +61,20 @@ object Decoder {
     go(xs, Decoder.pure(Vector.empty))
   }
 
-  def sequenceDecoder[A: Decoder](size: Int): Decoder[IndexedSeq[A]] = sequence(Vector.fill(size)(Decoder[A]))
+  def sequenceDecoder[A: Decoder](size: Int): Decoder[IndexedSeq[A]] = {
+
+    val d = Decoder[A]
+
+    def go(size: Int, acc: Decoder[IndexedSeq[A]]): Decoder[IndexedSeq[A]] =
+      if (size == 0) {
+        acc
+      } else {
+        go(size - 1, d.map2(acc)(_ +: _))
+      }
+
+    go(size, Decoder.pure(Vector.empty))
+
+  }
 
   implicit val boolDecoder: Decoder[Boolean] = new Decoder[Boolean] {
     def decode(offset: Int, arr: Array[Byte]): DecodedResult[Boolean] = DecodedResult(offset + 1, arr.bit(offset))
@@ -133,8 +146,8 @@ object Decoder {
 
       val res = mutable.Set.empty[Int]
       var i = 0
-      while(i < xs.size) {
-        if(xs(i)) {
+      while (i < xs.size) {
+        if (xs(i)) {
           res += i + 1
         }
         i = i + 1
@@ -268,7 +281,7 @@ object Decoder {
       import IntNumber._
 
       var i = 0
-      while(i < size) {
+      while (i < size) {
         if (bit(offset + i)) res = res + (sigMask << sigIndex)
         sigIndex -= 1
         i = i + 1
