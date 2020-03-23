@@ -1,9 +1,9 @@
-package io.github.ssledz
+package io.github.ssledz.iabtcf
 
 import java.time.{Instant, ZoneId, ZonedDateTime}
 
-import io.github.ssledz.Decoder.DecodedResult
-import io.github.ssledz.fp.Show
+import io.github.ssledz.iabtcf.Decoder.DecodedResult
+import io.github.ssledz.iabtcf.fp.Show
 
 import scala.annotation.tailrec
 
@@ -48,6 +48,7 @@ object Decoder {
 
   def sequence[A](xs: IndexedSeq[Decoder[A]]): Decoder[IndexedSeq[A]] = {
 
+    @tailrec
     def go(xs: IndexedSeq[Decoder[A]], acc: Decoder[IndexedSeq[A]]): Decoder[IndexedSeq[A]] = xs.headOption match {
       case Some(ha) =>
         val newAcc = for {
@@ -188,7 +189,7 @@ object Decoder {
   private case class IntRangeImpl(elems: Set[Int] = Set.empty, ranges: List[Range] = List.empty) extends IntRange {
     def contains(key: Int): Boolean = elems.contains(key) || ranges.exists(_.contains(key))
 
-    def toSeq: Seq[Int] = ranges.map(_.toSet).flatten ++ elems
+    def toSeq: Seq[Int] = ranges.flatMap(_.toSet) ++ elems
   }
 
   case class Lang(value: String) extends AnyVal

@@ -1,11 +1,11 @@
-package io.github.ssledz
+package io.github.ssledz.iabtcf
 
 import java.time.ZonedDateTime
 import java.util.TimeZone
 
-import io.github.ssledz.Decoder.{Country, Lang}
-import io.github.ssledz.TCString.{CoreSegment, CoreSegmentVersionTwo}
-import io.github.ssledz.fp.Show._
+import io.github.ssledz.iabtcf.Decoder.{Country, Lang}
+import io.github.ssledz.iabtcf.TCString.{CoreSegment, CoreSegmentVersionTwo}
+import io.github.ssledz.iabtcf.fp.Show._
 import org.scalatest.flatspec.AnyFlatSpec
 
 class TCStringSpec extends AnyFlatSpec {

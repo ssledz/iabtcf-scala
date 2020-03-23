@@ -1,6 +1,6 @@
-package io.github.ssledz
+package io.github.ssledz.iabtcf
 
-import io.github.ssledz.fp.Show._
+import io.github.ssledz.iabtcf.fp.Show._
 
 object Main extends App {
 

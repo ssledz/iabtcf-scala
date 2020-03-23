@@ -5,6 +5,10 @@ val mainScalaVersion = scala_2_13
 val supportedScalaVersions = Seq(scala_2_11, scala_2_12, scala_2_13)
 lazy val crossBuildSettings = Seq(crossScalaVersions := supportedScalaVersions)
 
+lazy val publishSettings = Seq(
+  publishMavenStyle := true
+)
+
 lazy val root = (project in file(".")).settings(
   commonSettings,
   consoleSettings,
@@ -13,6 +17,7 @@ lazy val root = (project in file(".")).settings(
   dependencies,
   tests,
   crossBuildSettings,
+  publishSettings,
   // https://github.com/dwijnand/sbt-dynver#docker-compatible-version-strings
   dynverSeparator in ThisBuild := "-",
 )

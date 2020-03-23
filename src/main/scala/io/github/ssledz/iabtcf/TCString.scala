@@ -1,16 +1,16 @@
-package io.github.ssledz
+package io.github.ssledz.iabtcf
 
 import java.time.ZonedDateTime
 import java.util.Base64
 
 import enumeratum.EnumEntry.Camelcase
 import enumeratum.values.{IntEnum, IntEnumEntry}
-import io.github.ssledz.Decoder.{Country, DecodedResult, Int12, Int2, Int6, IntRange, IntSet, Lang}
-import io.github.ssledz.TCString.CoreSegment.VendorConsents
-import io.github.ssledz.TCString.CoreSegmentVersionTwo.PublisherRestrictions.PurposeRestriction
-import io.github.ssledz.TCString.CoreSegmentVersionTwo._
-import io.github.ssledz.fp.Show
-import io.github.ssledz.fp.Show._
+import io.github.ssledz.iabtcf.fp.Show
+import io.github.ssledz.iabtcf.fp.Show._
+import io.github.ssledz.iabtcf.TCString.CoreSegment.VendorConsents
+import io.github.ssledz.iabtcf.TCString.CoreSegmentVersionTwo.PublisherRestrictions.PurposeRestriction
+import io.github.ssledz.iabtcf.TCString.CoreSegmentVersionTwo._
+import io.github.ssledz.iabtcf.Decoder._
 
 import scala.annotation.tailrec
 
@@ -56,8 +56,6 @@ object TCString {
         case aa: CoreSegmentVersionTwo => aa.show
       }
     }
-
-    import IntSet._
 
     class VendorConsents(private val underlying: IntSet) extends AnyVal {
       def hasConsent(vendorId: Int): Boolean = underlying.contains(vendorId)
@@ -244,8 +242,6 @@ object TCString {
     case class VendorLegitimateInterest(private val underlying: IntSet) extends AnyVal {
       def established(vendorId: Int): Boolean = underlying.contains(vendorId)
     }
-
-    import IntSet._
 
     object VendorLegitimateInterest {
       implicit val vendorLegitimateInterestShowInstance: Show[VendorLegitimateInterest] = new Show[VendorLegitimateInterest] {

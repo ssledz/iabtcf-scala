@@ -1,4 +1,4 @@
-package io.github.ssledz.fp
+package io.github.ssledz.iabtcf.fp
 
 trait Show[A] {
   def show(a: A): String
