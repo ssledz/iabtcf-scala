@@ -3,14 +3,14 @@ package io.github.ssledz.iabtcf
 import java.time.ZonedDateTime
 import java.util.Base64
 
-import enumeratum.EnumEntry.Camelcase
+import enumeratum.EnumEntry
 import enumeratum.values.{IntEnum, IntEnumEntry}
-import io.github.ssledz.iabtcf.fp.Show
-import io.github.ssledz.iabtcf.fp.Show._
+import io.github.ssledz.iabtcf.Decoder._
 import io.github.ssledz.iabtcf.TCString.CoreSegment.VendorConsents
 import io.github.ssledz.iabtcf.TCString.CoreSegmentVersionTwo.PublisherRestrictions.PurposeRestriction
 import io.github.ssledz.iabtcf.TCString.CoreSegmentVersionTwo._
-import io.github.ssledz.iabtcf.Decoder._
+import io.github.ssledz.iabtcf.fp.Show
+import io.github.ssledz.iabtcf.fp.Show._
 
 import scala.annotation.tailrec
 
@@ -206,7 +206,8 @@ object TCString {
       }
 
       implicit val publisherRestrictionsShowInstance: Show[PublisherRestrictions] = new Show[PublisherRestrictions] {
-        def show(prs: PublisherRestrictions): String = prs.allVendors.map(id => s"$id -> ${prs.restrictions(id).map(_.show)}").toString
+        def show(prs: PublisherRestrictions): String = prs.xs.sortBy { case (r, _) => r.purposeId }
+          .map { case (restriction, vendorRange) => s"${restriction.show} -> ${vendorRange.show}" }.toString
       }
 
       case class PurposeRestriction(purposeId: Int, restrictionType: RestrictionType)
@@ -225,7 +226,7 @@ object TCString {
 
       }
 
-      sealed abstract class RestrictionType private(val value: Int) extends IntEnumEntry with Camelcase
+      sealed abstract class RestrictionType private(val value: Int) extends IntEnumEntry with EnumEntry
 
       object RestrictionType extends IntEnum[RestrictionType] {
 
@@ -257,7 +258,7 @@ object TCString {
 
   case class TCModel(core: CoreSegment, segments: Map[TCSegmentType, TCSegment] = Map.empty)
 
-  sealed abstract class TCSegmentType private(val value: Int) extends IntEnumEntry
+  sealed abstract class TCSegmentType private(val value: Int) extends IntEnumEntry with EnumEntry
 
   object TCSegmentType extends IntEnum[TCSegmentType] {
     val values = findValues

@@ -231,3 +231,26 @@ publisherCountryCode     : Country(AA)
 vendorConsents           : Vector(127 -> true)
 vendorLegitimateInterest : Vector(128 -> true)
 publisherRestrictions    : None
+
+== publisherRestrictions=[3,2,1] ==
+COuQACgOuQACgM-AAAENAPCAAAAAAAAAAAAAAAAAAABgoAAQAAHAAA==
+
+version                  : 2
+created                  : 2020-02-04T17:19:53+01:00[Europe/Warsaw]
+updated                  : 2020-02-04T17:19:53+01:00[Europe/Warsaw]
+cmpId                    : 830
+cmpVersion               : 0
+consentScreen            : 0
+consentLanguage          : Lang(EN)
+vendorListVersion        : 15
+tcfPolicyVersion         : 2
+isServiceSpecific        : false
+useNonStandardStacks     : false
+specialFeatureOptIns     : Vector()
+purposesConsent          : Vector()
+purposesLITransparency   : Vector()
+purposeOneTreatment      : false
+publisherCountryCode     : Country(AA)
+vendorConsents           : Vector()
+vendorLegitimateInterest : Vector()
+publisherRestrictions    : Some(List(1::RequireConsent -> List(), 2::NotAllowed -> List(), 3::RequireLegitimateInterest -> List()))
