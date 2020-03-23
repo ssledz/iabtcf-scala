@@ -19,11 +19,10 @@ trait Decoder[A] {
       a <- self
     } yield f(a)
 
-  def map2[B, C](fb: Decoder[B])(f: (A, B) => C): Decoder[C] = {
-    val fabc: Decoder[A => B => C] = Decoder.pure(f.curried)
-    val fbc: Decoder[B => C] = ap(fabc)
-    fb.ap(fbc)
-  }
+  def map2[B, C](fb: Decoder[B])(f: (A, B) => C): Decoder[C] = for {
+    a <- self
+    b <- fb
+  } yield f(a, b)
 
   def map[B](f: A => B): Decoder[B] = flatMap(a => Decoder.pure(f(a)))
 
@@ -131,13 +130,16 @@ object Decoder {
   private def bitFieldDecoder(size: Int): Decoder[IntRange] =
     Decoder.sequenceDecoder[Boolean](size).map { xs =>
       import collection.mutable
-      val (_, value) = xs.foldLeft(1 -> mutable.Set.empty[Int]) { case ((cnt, acc), x) =>
-        if (x) {
-          acc += cnt
+
+      val res = mutable.Set.empty[Int]
+      var i = 0
+      while(i < xs.size) {
+        if(xs(i)) {
+          res += i + 1
         }
-        (cnt + 1, acc)
+        i = i + 1
       }
-      DefaultIntRange(value.toSet)
+      DefaultIntRange(res.toSet)
     }
 
   implicit val legacyIntSetDecoder: Decoder[LegacyIntSet] = for {
@@ -265,10 +267,13 @@ object Decoder {
 
       import IntNumber._
 
-      for (i <- 0 until size) {
+      var i = 0
+      while(i < size) {
         if (bit(offset + i)) res = res + (sigMask << sigIndex)
         sigIndex -= 1
+        i = i + 1
       }
+
       res
 
     }
