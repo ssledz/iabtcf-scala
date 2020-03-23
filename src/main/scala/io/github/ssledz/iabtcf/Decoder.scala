@@ -248,7 +248,7 @@ object Decoder {
   }
 
   object BitSet {
-    private val Powers: Array[Int] = Array(-128, 64, 32, 16, 8, 4, 2, 1)
+    private val Powers: Array[Int] = Array(128, 64, 32, 16, 8, 4, 2, 1)
   }
 
   sealed trait IntNumber[T] {

@@ -8,7 +8,7 @@ import io.github.ssledz.iabtcf.fp.Show._
 
 class CoreSegmentVersionTwoSpec extends CoreSegmentSpec {
 
-  val filePath: String = "tcf-2.0-spec.txt"
+  val filePath: String = "tcf-2.0-core-segment-spec.txt"
 
   val showInstance: Show[CoreSegment] = new Show[CoreSegment] {
     def show(a: CoreSegment): String = a match {
@@ -37,12 +37,6 @@ class CoreSegmentVersionTwoSpec extends CoreSegmentSpec {
       case _ => fail("expected tcf 2.0 core segment")
     }
   }
-
-  val tcString = "COwkr9uOwkr9uNPAAAENAdCAADwAAAAAAAAAAHgCSAAAAAA"
-
-  val c = TCString.parse(tcString).core
-
-  println(c.show(showInstance))
 
   behave like testCoreSegment
 
