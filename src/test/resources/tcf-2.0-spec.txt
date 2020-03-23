@@ -1,0 +1,26 @@
+#
+# version 2.0 tcf strings
+#
+
+== lang=en; ==
+COwkr9uOwkr9uNPAAAENAdCAADwAAAAAAAAAAHgCSAAAAAA
+
+version                  : 2
+created                  : 2020-03-20T20:01:56+01:00[Europe/Warsaw]
+updated                  : 2020-03-20T20:01:56+01:00[Europe/Warsaw]
+cmpId                    : 847
+cmpVersion               : 0
+consentScreen            : 0
+consentLanguage          : Lang(EN)
+vendorListVersion        : 29
+tcfPolicyVersion         : 2
+isServiceSpecific        : false
+useNonStandardStacks     : false
+specialFeatureOptIns     : Vector()
+purposesConsent          : Vector(18 -> true, 19 -> true, 20 -> true, 21 -> true)
+purposesLITransparency   : Vector()
+purposeOneTreatment      : false
+publisherCountryCode     : Country(AA)
+vendorConsents           : Vector(1 -> true, 4 -> true, 7 -> true)
+vendorLegitimateInterest : Vector()
+publisherRestrictions    : None
