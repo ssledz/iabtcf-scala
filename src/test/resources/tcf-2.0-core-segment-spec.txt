@@ -163,6 +163,10 @@ vendorConsents           : Vector(243 -> true)
 vendorLegitimateInterest : Vector()
 publisherRestrictions    : None
 
+#
+# All below examples are taken from https://github.com/InteractiveAdvertisingBureau/iabtcf-java/blob/854ee2def6ea9423628e69552ad1772ad1f0839c/src/test/java/com/iabtcf/decoder/TCStringV2Test.java
+#
+
 == specialFeatureOptIns=[1]; purposesLITransparency=[2, 10]; purposesLITransparency=[2, 9] ==
 COtybn4PA_zT4KjACBENAPCIAEBAAECAAIAAAAAAAAAA
 
@@ -254,3 +258,49 @@ publisherCountryCode     : Country(AA)
 vendorConsents           : Vector()
 vendorLegitimateInterest : Vector()
 publisherRestrictions    : Some(List(1::RequireConsent -> List(), 2::NotAllowed -> List(), 3::RequireLegitimateInterest -> List()))
+
+== vendorConsents=[702, 703]; vendorLegitimateInterest=[683, 684] ==
+COwBOpCOwBOpCLqAAAENAPCAAAAAAAAAAAAAFfwAYFfAV-BVkAGBVYFWAAA.IFoEUQQgAIQwgIwQABAEAAAAOIAACAIAAAAQAIAgEAACEAAAAAgAQBAAAAAAAGBAAgAAAAAAAFAAECAAAgAAQARAEQAAAAAJAAIAAgAAAYQEAAAQmAgBC3ZAYzUw
+
+version                  : 2
+created                  : 2020-03-10T01:50:01+01:00[Europe/Warsaw]
+updated                  : 2020-03-10T01:50:01+01:00[Europe/Warsaw]
+cmpId                    : 746
+cmpVersion               : 0
+consentScreen            : 0
+consentLanguage          : Lang(EN)
+vendorListVersion        : 15
+tcfPolicyVersion         : 2
+isServiceSpecific        : false
+useNonStandardStacks     : false
+specialFeatureOptIns     : Vector()
+purposesConsent          : Vector()
+purposesLITransparency   : Vector()
+purposeOneTreatment      : false
+publisherCountryCode     : Country(AA)
+vendorConsents           : Vector(702 -> true, 703 -> true)
+vendorLegitimateInterest : Vector(683 -> true, 684 -> true)
+publisherRestrictions    : None
+
+== vendorConsents=[703]; vendorLegitimateInterest=[653] ==
+COwBOpCOwBOpCLqAAAENAPCAAAAAAAAAAAAAFfwAQFfgUbABAUaAAA.IFoEUQQgAIQwgIwQABAEAAAAOIAACAIAAAAQAIAgEAACEAAAAAgAQBAAAAAAAGBAAgAAAAAAAFAAECAAAgAAQARAEQAAAAAJAAIAAgAAAYQEAAAQmAgBC3ZAYzUw
+
+version                  : 2
+created                  : 2020-03-10T01:50:01+01:00[Europe/Warsaw]
+updated                  : 2020-03-10T01:50:01+01:00[Europe/Warsaw]
+cmpId                    : 746
+cmpVersion               : 0
+consentScreen            : 0
+consentLanguage          : Lang(EN)
+vendorListVersion        : 15
+tcfPolicyVersion         : 2
+isServiceSpecific        : false
+useNonStandardStacks     : false
+specialFeatureOptIns     : Vector()
+purposesConsent          : Vector()
+purposesLITransparency   : Vector()
+purposeOneTreatment      : false
+publisherCountryCode     : Country(AA)
+vendorConsents           : Vector(703 -> true)
+vendorLegitimateInterest : Vector(653 -> true)
+publisherRestrictions    : None
