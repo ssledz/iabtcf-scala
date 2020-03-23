@@ -142,9 +142,7 @@ object Decoder {
 
   implicit val legacyIntSetDecoder: Decoder[LegacyIntSet] = for {
     maxId <- Decoder[Int16]
-    _ = println("maxId: " + maxId)
     isRange <- Decoder[Boolean]
-    _ = println("isRange: " + isRange)
     decoder = if (isRange) {
       Decoder.tupled(Decoder[Boolean].map(Option.apply), intRangeDecoder)
     } else {
