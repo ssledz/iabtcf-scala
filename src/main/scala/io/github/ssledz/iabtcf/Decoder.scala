@@ -48,14 +48,14 @@ object Decoder {
   def sequence[A](xs: IndexedSeq[Decoder[A]]): Decoder[IndexedSeq[A]] = {
 
     @tailrec
-    def go(xs: IndexedSeq[Decoder[A]], acc: Decoder[IndexedSeq[A]]): Decoder[IndexedSeq[A]] = xs.headOption match {
-      case Some(ha) =>
+    def go(xs: IndexedSeq[Decoder[A]], acc: Decoder[IndexedSeq[A]]): Decoder[IndexedSeq[A]] = xs match {
+      case ha +: t =>
         val newAcc = for {
           a <- ha
           as <- acc
         } yield a +: as
-        go(xs.tail, newAcc)
-      case None => acc
+        go(t, newAcc)
+      case _ => acc
     }
 
     go(xs, Decoder.pure(Vector.empty))
