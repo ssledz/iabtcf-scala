@@ -54,7 +54,7 @@ object Decoder {
         val newAcc = for {
           a <- ha
           as <- acc
-        } yield as :+ a
+        } yield a +: as
         go(xs.tail, newAcc)
       case None => acc
     }

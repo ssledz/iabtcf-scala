@@ -17,10 +17,148 @@ tcfPolicyVersion         : 2
 isServiceSpecific        : false
 useNonStandardStacks     : false
 specialFeatureOptIns     : Vector()
-purposesConsent          : Vector(18 -> true, 19 -> true, 20 -> true, 21 -> true)
+purposesConsent          : Vector(3 -> true, 4 -> true, 5 -> true, 6 -> true)
 purposesLITransparency   : Vector()
 purposeOneTreatment      : false
 publisherCountryCode     : Country(AA)
-vendorConsents           : Vector(1 -> true, 4 -> true, 7 -> true)
+vendorConsents           : Vector(9 -> true, 12 -> true, 15 -> true)
+vendorLegitimateInterest : Vector()
+publisherRestrictions    : None
+
+== lang=en; cmpId=944 ==
+COwt9hgOwt9hgOwAAAENAdCAANRAAAAAAAAAB5wBwABAAGgAQABIADIBAAEEAIUAeYAAAAA.IF0EWSQgCYWgho0QUBzBAIYAfJgSCAMgSAAQIoSkFQISERBAGOiAQHAEQJAAAGBAAkACAAQAoHGBMCQABgAARiRCEQUGIDzNIBIBAggEaYUFAAAVmmkHC3ZCY702yumQ.YAAAAAAAAAAAAAAAAAA
+
+version                  : 2
+created                  : 2020-03-23T15:33:58+01:00[Europe/Warsaw]
+updated                  : 2020-03-23T15:33:58+01:00[Europe/Warsaw]
+cmpId                    : 944
+cmpVersion               : 0
+consentScreen            : 0
+consentLanguage          : Lang(EN)
+vendorListVersion        : 29
+tcfPolicyVersion         : 2
+isServiceSpecific        : false
+useNonStandardStacks     : false
+specialFeatureOptIns     : Vector()
+purposesConsent          : Vector(1 -> true, 2 -> true, 4 -> true, 6 -> true, 10 -> true)
+purposesLITransparency   : Vector()
+purposeOneTreatment      : false
+publisherCountryCode     : Country(AA)
+vendorConsents           : Vector(2 -> true, 6 -> true, 8 -> true, 9 -> true, 12 -> true, 128 -> true, 129 -> true, 130 -> true, 133 -> true, 243 -> true)
+vendorLegitimateInterest : Vector()
+publisherRestrictions    : None
+
+== lang=en; cmpId=13 ==
+COvoxmQOwt_VsANABCENAdCAAIAAAAAAAABwABEAAAAA.IF0EWSQgCYWgho0QUBzBAIYAfJgSCAMgSAAQIoSkFQISERBAGOiAQHAEQJAAAGBAAkACAAQAoHGBMCQABgAARiRCEQUGIDzNIBIBAggEaYUFAAAVmmkHC3ZCY702yumQ.YAAAAAAAAAAAAAAAAAA
+
+version                  : 2
+created                  : 2020-03-02T15:46+01:00[Europe/Warsaw]
+updated                  : 2020-03-23T15:46:22+01:00[Europe/Warsaw]
+cmpId                    : 13
+cmpVersion               : 1
+consentScreen            : 2
+consentLanguage          : Lang(EN)
+vendorListVersion        : 29
+tcfPolicyVersion         : 2
+isServiceSpecific        : false
+useNonStandardStacks     : false
+specialFeatureOptIns     : Vector()
+purposesConsent          : Vector(1 -> true)
+purposesLITransparency   : Vector()
+purposeOneTreatment      : false
+publisherCountryCode     : Country(AO)
+vendorConsents           : Vector(2 -> true)
+vendorLegitimateInterest : Vector()
+publisherRestrictions    : None
+
+== lang=en; cmpId=9 ==
+COwt_yROwt_yRAJADCENAdCAAAAAAAAAAAAAAGAAAAAAAA.IF0EWSQgCYWgho0QUBzBAIYAfJgSCAMgSAAQIoSkFQISERBAGOiAQHAEQJAAAGBAAkACAAQAoHGBMCQABgAARiRCEQUGIDzNIBIBAggEaYUFAAAVmmkHC3ZCY702yumQ.YAAAAAAAAAAAAAAAAAA
+
+version                  : 2
+created                  : 2020-03-23T15:49:24+01:00[Europe/Warsaw]
+updated                  : 2020-03-23T15:49:24+01:00[Europe/Warsaw]
+cmpId                    : 9
+cmpVersion               : 3
+consentScreen            : 2
+consentLanguage          : Lang(EN)
+vendorListVersion        : 29
+tcfPolicyVersion         : 2
+isServiceSpecific        : false
+useNonStandardStacks     : false
+specialFeatureOptIns     : Vector()
+purposesConsent          : Vector()
+purposesLITransparency   : Vector()
+purposeOneTreatment      : false
+publisherCountryCode     : Country(AA)
+vendorConsents           : Vector()
+vendorLegitimateInterest : Vector()
+publisherRestrictions    : None
+
+== lang=en; isServiceSpec=true ==
+COwuACkOwuACkNuAAAENAdCwAAAAAAAAAIAAAAAAAAAA.YAAAAAAAAAAAAAAAAAA
+
+version                  : 2
+created                  : 2020-03-23T15:51:09+01:00[Europe/Warsaw]
+updated                  : 2020-03-23T15:51:09+01:00[Europe/Warsaw]
+cmpId                    : 878
+cmpVersion               : 0
+consentScreen            : 0
+consentLanguage          : Lang(EN)
+vendorListVersion        : 29
+tcfPolicyVersion         : 2
+isServiceSpecific        : true
+useNonStandardStacks     : true
+specialFeatureOptIns     : Vector()
+purposesConsent          : Vector()
+purposesLITransparency   : Vector()
+purposeOneTreatment      : true
+publisherCountryCode     : Country(AA)
+vendorConsents           : Vector()
+vendorLegitimateInterest : Vector()
+publisherRestrictions    : None
+
+== lang=en; isServiceSpec=true; cmpId=310, cc=ad ==
+COwuAcbOwuAcbE2ABBENAdCwAAAAAAAAAIAYAAAAAAAA.YAAAAAAAAAAAAAAAAAA
+
+version                  : 2
+created                  : 2020-03-23T15:53:54+01:00[Europe/Warsaw]
+updated                  : 2020-03-23T15:53:54+01:00[Europe/Warsaw]
+cmpId                    : 310
+cmpVersion               : 1
+consentScreen            : 1
+consentLanguage          : Lang(EN)
+vendorListVersion        : 29
+tcfPolicyVersion         : 2
+isServiceSpecific        : true
+useNonStandardStacks     : true
+specialFeatureOptIns     : Vector()
+purposesConsent          : Vector()
+purposesLITransparency   : Vector()
+purposeOneTreatment      : true
+publisherCountryCode     : Country(AD)
+vendorConsents           : Vector()
+vendorLegitimateInterest : Vector()
+publisherRestrictions    : None
+
+== lang=en; cmpId=113; vendorConsents=243 ==
+COvsGAAOwuA2-BxABCENAdCAAAAAAAAAAAAAB5wAQB5gAAAA.IF0EWSQgCYWgho0QUBzBAIYAfJgSCAMgSAAQIoSkFQISERBAGOiAQHAEQJAAAGBAAkACAAQAoHGBMCQABgAARiRCEQUGIDzNIBIBAggEaYUFAAAVmmkHC3ZCY702yumQ.YAAAAAAAAAAAAAAAAAA
+
+version                  : 2
+created                  : 2020-03-03T15:56+01:00[Europe/Warsaw]
+updated                  : 2020-03-23T15:56:44+01:00[Europe/Warsaw]
+cmpId                    : 113
+cmpVersion               : 1
+consentScreen            : 2
+consentLanguage          : Lang(EN)
+vendorListVersion        : 29
+tcfPolicyVersion         : 2
+isServiceSpecific        : false
+useNonStandardStacks     : false
+specialFeatureOptIns     : Vector()
+purposesConsent          : Vector()
+purposesLITransparency   : Vector()
+purposeOneTreatment      : false
+publisherCountryCode     : Country(AA)
+vendorConsents           : Vector(243 -> true)
 vendorLegitimateInterest : Vector()
 publisherRestrictions    : None

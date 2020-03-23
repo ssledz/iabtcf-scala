@@ -76,6 +76,10 @@ object TCString {
     lazy val vendorConsents: VendorConsents = new VendorConsents(Decoder[IntSet].decode(156, arr).value)
   }
 
+  private implicit val indexedBoolSeqShowInstance: Show[IndexedSeq[Boolean]] = new Show[IndexedSeq[Boolean]] {
+    def show(a: IndexedSeq[Boolean]): String = a.zipWithIndex.filter(_._1).map { case (_, i) => s"${i + 1} -> true" }.toString
+  }
+
   object CoreSegmentVersionOne {
     implicit val coreV1ShowInstance: Show[CoreSegmentVersionOne] = new Show[CoreSegmentVersionOne] {
       def show(a: CoreSegmentVersionOne): String =
@@ -88,7 +92,7 @@ object TCString {
            |consentScreen            : ${a.consentScreen}
            |consentLanguage          : ${a.consentLanguage}
            |vendorListVersion        : ${a.vendorListVersion}
-           |purposesConsent          : ${a.purposesConsent}
+           |purposesConsent          : ${a.purposesConsent.show}
            |vendorConsents           : ${a.vendorConsents.show}
            |""".stripMargin
     }
@@ -134,9 +138,9 @@ object TCString {
            |tcfPolicyVersion         : ${a.tcfPolicyVersion}
            |isServiceSpecific        : ${a.isServiceSpecific}
            |useNonStandardStacks     : ${a.useNonStandardStacks}
-           |specialFeatureOptIns     : ${a.specialFeatureOptIns}
-           |purposesConsent          : ${a.purposesConsent}
-           |purposesLITransparency   : ${a.purposesLITransparency}
+           |specialFeatureOptIns     : ${a.specialFeatureOptIns.show}
+           |purposesConsent          : ${a.purposesConsent.show}
+           |purposesLITransparency   : ${a.purposesLITransparency.show}
            |purposeOneTreatment      : ${a.purposeOneTreatment}
            |publisherCountryCode     : ${a.publisherCountryCode}
            |vendorConsents           : ${a.vendorConsents.show}

@@ -15,6 +15,8 @@ trait CoreSegmentSpec extends AnyFlatSpec {
 
   implicit def showInstance: Show[CoreSegment]
 
+  behavior of "TCString.parse in case of valid consent string"
+
   def testCoreSegment: Unit = {
 
     bracket(Source.fromFile(classOf[CoreSegmentSpec].getClassLoader.getResource(filePath).toURI)) { lines =>
@@ -23,7 +25,9 @@ trait CoreSegmentSpec extends AnyFlatSpec {
 
       for (test <- tests) {
 
-        it should s"${test.title}" in {
+        val title = test.title.stripPrefix("==").stripSuffix("==")
+
+        it should s"return valid tc model with $title" in {
 
           val core = TCString.parse(test.tcfStr).core
 
@@ -76,7 +80,7 @@ object CoreSegmentSpec {
   }
 
   implicit val indexedBoolSeqShowInstance: Show[IndexedSeq[Boolean]] = new Show[IndexedSeq[Boolean]] {
-    def show(a: IndexedSeq[Boolean]): String = a.zipWithIndex.filter(_._1).map { case (_, i) => s"$i -> true" }.toString
+    def show(a: IndexedSeq[Boolean]): String = a.zipWithIndex.filter(_._1).map { case (_, i) => s"${i + 1} -> true" }.toString
   }
 
 }
