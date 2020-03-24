@@ -155,19 +155,18 @@ object Decoder {
       DefaultIntRange(res.toSet)
     }
 
-  implicit val legacyIntSetDecoder: Decoder[LegacyIntSet] = for {
-    maxId <- Decoder[Int16]
-    isRange <- Decoder[Boolean]
-    decoder = if (isRange) {
-      Decoder.tupled(Decoder[Boolean].map(Option.apply), intRangeDecoder)
-    } else {
-      Decoder.tupled(Decoder.pure(None: Option[Boolean]), bitFieldDecoder(maxId.value))
-    }
-    decodedRes <- decoder
-    (defaultValue, intRange) = decodedRes
-  } yield defaultValue match {
-    case Some(value) => LegacyIntSet(IntSetImpl(maxId.value, intRange.withDefaultValue(value)))
-    case None => LegacyIntSet(IntSetImpl(maxId.value, intRange))
+  implicit val legacyIntSetDecoder: Decoder[LegacyIntSet] = {
+    for {
+      maxId <- Decoder[Int16]
+      isRange <- Decoder[Boolean]
+      decoder = if (isRange)
+        Decoder[Boolean].map2(intRangeDecoder) { (defaultValue, intRange) =>
+          intRange.withDefaultValue(defaultValue)
+        }
+      else
+        bitFieldDecoder(maxId.value)
+      intRange <- decoder
+    } yield LegacyIntSet(IntSetImpl(maxId.value, intRange))
   }
 
   implicit val intSetDecoder: Decoder[IntSet] = for {
