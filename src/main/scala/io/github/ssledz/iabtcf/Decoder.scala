@@ -258,18 +258,17 @@ object Decoder {
         val size = byteIndex + 1
         throw new IndexOutOfBoundsException(s"Expected consent string to contain at least $size bytes, but found only ${array.length} bytes")
       }
-      val bitExact = offset % 8
-      val b = array(byteIndex)
-      (b & BitSet.Powers(bitExact)) != 0
+      val pos = offset % 8
+      (array(byteIndex) >>> (7 - pos) & 1) == 1
     }
 
     def int(offset: Int, size: Int): Int = number[Int](offset, size)
 
     def long(offset: Int, size: Int): Long = number[Long](offset, size)
 
-    private def readMsb(src: Byte, offset: Int, len: Int): Byte = ((src >>> ((8 - len) - offset)) & ((1 << len) - 1)).toByte
+    private def msb(src: Byte, offset: Int, len: Int): Int = (src >>> ((8 - len) - offset)) & ((1 << len) - 1)
 
-    private def readLsb(src: Byte, offset: Int, len: Int): Byte = ((src & ((1 << len) - 1)) << offset).toByte
+    private def lsb(src: Byte, offset: Int, len: Int): Int = (src & ((1 << len) - 1)) << offset
 
     def int16(offset: Int): Int = {
       val start = offset >> 3
@@ -278,13 +277,13 @@ object Decoder {
       if (pos == 0) {
         (array(start) & 0xFF) << 8 | (array(start + 1) & 0xFF)
       } else {
-        (readLsb(array(start), pos, 8 - pos) & 0xFF) << 8 |
+        (lsb(array(start), pos, 8 - pos) & 0xFF) << 8 |
           (array(start + 1) & 0xFF) << pos |
-          readMsb(array(start + 2), 0, pos) & 0xFF
+          msb(array(start + 2), 0, pos) & 0xFF
       }
     }
 
-    private def number[@specialized(Int, Long) N : Manifest](offset: Int, size: Int)(implicit N: IntNumber[N]): N = {
+    private def number[@specialized(Int, Long) N: Manifest](offset: Int, size: Int)(implicit N: IntNumber[N]): N = {
 
       if (size > N.size) {
         val clazzName = implicitly[Manifest[N]].runtimeClass.getName
@@ -307,10 +306,6 @@ object Decoder {
 
     }
 
-  }
-
-  object BitSet {
-    private val Powers: Array[Int] = Array(128, 64, 32, 16, 8, 4, 2, 1)
   }
 
   sealed trait IntNumber[T] {
