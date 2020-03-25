@@ -284,7 +284,7 @@ object Decoder {
       }
     }
 
-    private def number[@specialized(Int, Long) N](offset: Int, size: Int)(implicit N: IntNumber[N]): N = {
+    private def number[@specialized(Int, Long) N : Manifest](offset: Int, size: Int)(implicit N: IntNumber[N]): N = {
 
       if (size > N.size) {
         val clazzName = implicitly[Manifest[N]].runtimeClass.getName
