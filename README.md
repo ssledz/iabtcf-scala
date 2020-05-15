@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/ssledz/iabtcf-scala.svg?style=shield)](https://circleci.com/gh/ssledz/iabtcf-scala)
+
 ## Resources
 
 * [iabtcf-java](https://github.com/InteractiveAdvertisingBureau/iabtcf-java)
